@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Főoldal - Költség Követő</title>
     <style>
         body { 
@@ -84,6 +85,17 @@
         }
         table tr:hover {
             background-color: #f5f5f5;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+        .delete-btn:hover {
+            transform: scale(1.2);
         }
         .no-data {
             background: white;
@@ -391,10 +403,66 @@
         }
     </style>
     <script>
-        function openModal() {
-            document.getElementById('koltsegModal').classList.add('show');
-            document.getElementById('kategoria_input').value = '';
-            document.getElementById('kategoria_selected').value = '';
+        function openModal(tranzakcioId = null) {
+            const modal = document.getElementById('koltsegModal');
+            const form = document.getElementById('koltsegForm');
+            const title = document.getElementById('modalTitle');
+            const submitBtn = document.querySelector('#koltsegForm button[type="submit"]');
+            
+            modal.classList.add('show');
+            
+            if (tranzakcioId) {
+                // Szerkesztés mód
+                title.textContent = 'Költség Szerkesztése';
+                form.action = `/koltseg/edit/${tranzakcioId}`;
+                submitBtn.textContent = 'Költség Szerkesztése';
+                
+                // Hidden method field hozzáadása PUT-hez
+                let methodField = document.getElementById('methodField');
+                if (!methodField) {
+                    methodField = document.createElement('input');
+                    methodField.id = 'methodField';
+                    methodField.type = 'hidden';
+                    methodField.name = '_method';
+                    methodField.value = 'PUT';
+                    form.appendChild(methodField);
+                } else {
+                    methodField.value = 'PUT';
+                }
+            } else {
+                // Új költség hozzáadása mód
+                title.textContent = 'Új Költség Hozzáadása';
+                form.action = '/koltseg/add';
+                submitBtn.textContent = 'Költség Hozzáadása';
+                
+                // Method field eltávolítása (POST-hoz nincs kell)
+                const methodField = document.getElementById('methodField');
+                if (methodField) {
+                    methodField.remove();
+                }
+                
+                // Form mezők ürítése
+                document.getElementById('kategoria_input').value = '';
+                document.getElementById('penznem_input').value = '';
+                document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = '';
+                document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = '';
+                document.getElementById('koltsegForm').querySelector('textarea[name="megjegyzes"]').value = '';
+            }
+        }
+        
+        function editTranzakcio(tranzakcioId, rogzites, kategoria, osszeg, penznem, megjegyzes) {
+            openModal(tranzakcioId);
+            
+            // Mezők feltöltése
+            document.getElementById('kategoria_input').value = kategoria;
+            document.getElementById('kategoria_list').classList.remove('show');
+            
+            document.getElementById('penznem_input').value = penznem;
+            document.getElementById('penznem_list').classList.remove('show');
+            
+            document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = osszeg.replace(/\s/g, '').replace(',', '.');
+            document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = rogzites;
+            document.getElementById('koltsegForm').querySelector('textarea[name="megjegyzes"]').value = megjegyzes || '';
         }
         
         function closeModal() {
@@ -472,6 +540,32 @@
             document.getElementById('penznem_input').value = nev;
             document.getElementById('penznem_list').classList.remove('show');
         }
+        
+        function deleteTranzakcio(tranzakcioId, categoria, osszeg) {
+            if (confirm(`Biztosan törlöd ezt a költséget?\n\nKategória: ${categoria}\nÖsszeg: ${osszeg}`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/koltseg/delete/${tranzakcioId}`;
+                
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (csrfToken) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = '_token';
+                    input.value = csrfToken;
+                    form.appendChild(input);
+                }
+                
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+                form.appendChild(methodInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
 
     </script>
 </head>
@@ -500,16 +594,23 @@
                             <th>Dátum</th>
                             <th>Kategória</th>
                             <th>Összeg</th>
+                            <th>Forint érték</th>
                             <th>Leírás</th>
+                            <th>Műveletek</th>
                         </tr>
-                        @foreach($tranzakciok as $item)
+                        @foreach($tranzakciokAtvalasztva as $item)
                             <tr>
                                 <td>{{ $item->rogzites }}</td>
                                 <td>
                                     {{ $item->kategoria->nev ?? (\App\Models\kategoria::find($item->kategoriaid)->nev ?? '-') }}
                                 </td>
-                                <td><strong>{{ $item->osszeg }}</strong> Ft</td>
+                                <td><strong>{{ number_format($item->osszeg, 2, ',', ' ') }}</strong> {{ $item->penznem->nev }}</td>
+                                <td><strong>{{ number_format($item->osszeghuf, 0, ',', ' ') }}</strong> Ft</td>
                                 <td>{{ $item->megjegyzes }}</td>
+                                <td>
+                                    <button class="delete-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">✏️</button>
+                                    <button class="delete-btn" onclick="deleteTranzakcio({{ $item->id }}, '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}')" title="Törlés">🗑️</button>
+                                </td>
                             </tr>
                         @endforeach
                     </table>
@@ -526,8 +627,8 @@
                     <h2 style="margin-top: 0;">Gyors Áttekintés</h2>
                     <div class="stats-summary">
                         <div class="stat-card">
-                            <div class="stat-card-label">Összes költség</div>
-                            <div class="stat-card-value">{{ number_format($total ?? 0, 0, ',', ' ') }} Ft</div>
+                            <div class="stat-card-label">Összes költség (forintban)</div>
+                            <div class="stat-card-value">{{ number_format($total, 0, ',', ' ') }} Ft</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-label">Költségek száma</div>
@@ -573,7 +674,7 @@
     <div id="koltsegModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Új Költség Hozzáadása</h2>
+            <h2 id="modalTitle">Új Költség Hozzáadása</h2>
             
             @if($errors->any())
                 @foreach($errors->all() as $error)
@@ -583,7 +684,7 @@
                 @endforeach
             @endif
             
-            <form action="/koltseg/add" method="POST">
+            <form action="/koltseg/add" method="POST" id="koltsegForm">
                 @csrf
                 <!--Kategória-->
                 <div class="kategoria-input-wrapper" id="kategoria_wrapper">

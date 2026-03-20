@@ -7,7 +7,9 @@ use App\Models\felhasznalo;
 use App\Models\Tranzakcio;
 use App\Models\kategoria;
 use App\Models\penznem;
+use App\Models\arbazis;
 use App\Http\Controllers\StatController;
+use App\Services\ExchangeRateService;
 
 Route::get('/', function () {
     return view('login');
@@ -40,7 +42,22 @@ Route::get('/fooldal', function () {
     }
     $userId = session('user')->id;
 
+    $exchangeRateService = new ExchangeRateService();
+
     $tranzakciok = Tranzakcio::with('kategoria','penznem')->where('felhasznaloid', $userId)->get();
+    
+    // Az árfolyamok lekérése az összes tranzakcióhoz - try-catch-al kezelve, ha a tábla még nem létezik
+    $arfolyamok = collect();
+    try {
+        $arfolyamok = arbazis::with('penznem')->get()->keyBy('penznemid');
+    } catch (\Exception $e) {
+        // Ha az arbazis tábla még nem létezik, üres colllection-vel dolgozunk
+        $arfolyamok = collect();
+    }
+    
+    // Az összegek átváltása forintra az ExchangeRateService segítségével
+    $tranzakciokAtvalasztva = $exchangeRateService->convertAllToHUF($tranzakciok);
+    
     $rawKats = kategoria::where('felhasznaloid', $userId)->orWhereNull('felhasznaloid')->orderBy('nev', 'asc')->get();
     $kategoriak = $rawKats->groupBy(function($k){
         return mb_strtolower(trim($k->nev));
@@ -49,17 +66,13 @@ Route::get('/fooldal', function () {
     })->values();
     $penznemek = penznem::all();
 
-    // Statisztikai adatok
-    $total = Tranzakcio::where('felhasznaloid', $userId)->sum('osszeg');
-    $byCategory = Tranzakcio::select('kategoria.nev as name', DB::raw('SUM(tranzakcio.osszeg) as total'))
-        ->join('kategoria', 'tranzakcio.kategoriaid', '=', 'kategoria.id')
-        ->where('tranzakcio.felhasznaloid', $userId)
-        ->groupBy('kategoria.nev')
-        ->orderByDesc('total')
-        ->limit(5)
-        ->get();
+    // Statisztikai adatok - forint-alapú számítások
+    $total = $tranzakciokAtvalasztva->sum('osszeghuf');
+    
+    // Kategóriánkénti összegzés az ExchangeRateService segítségével
+    $byCategory = $exchangeRateService->getCategoryTotalsInHUF($tranzakciok)->take(5);
 
-    return view('fooldal', compact('tranzakciok','kategoriak','penznemek','total','byCategory'));
+    return view('fooldal', compact('tranzakciokAtvalasztva','kategoriak','penznemek','total','byCategory', 'arfolyamok', 'tranzakciok'));
 });
 
 Route::get('/teszt', function () {
@@ -106,8 +119,8 @@ Route::post('/koltseg/add', function () {
         ]);
     }
 
-    // Pénznem keresése (vagy hibakezelés)
-    $penznemRecord = penznem::where('nev', $penznemNev)->first();
+    // Pénznem keresése (case-insensitive keresés)
+    $penznemRecord = penznem::whereRaw('LOWER(nev) = LOWER(?)', [$penznemNev])->first();
     if (!$penznemRecord) {
         // Ha nem létezik a pénznem, kezeljük az errort
         return back()->withErrors(['penznem' => 'A megadott pénznem nem létezik az adatbázisban.']);
@@ -140,4 +153,139 @@ Route::post('/kategoria/add', function () {
     return redirect('/fooldal')->with('success', 'Költség sikeresen hozzáadva!');
 });
 
+Route::put('/koltseg/edit/{id}', function ($id) {
+    if (!session('user')) {
+        return redirect('/login');
+    }
+
+    $tranzakcio = Tranzakcio::find($id);
+
+    if (!$tranzakcio) {
+        return redirect('/fooldal')->withErrors(['error' => 'A költség nem található!']);
+    }
+
+    // Ellenőrzés: csak a saját költségét lehet szerkeszteni
+    if ($tranzakcio->felhasznaloid !== session('user')->id) {
+        return redirect('/fooldal')->withErrors(['error' => 'Nincs jogod ezt a költséget szerkeszteni!']);
+    }
+
+    $kategoriaNev = trim(request('kategoria'));
+    $penznemNev = trim(request('penznem'));
+    $userId = session('user')->id;
+
+    // Kategória keresése (felhasználó-specifikus vagy globális)
+    $kat = kategoria::where('nev', $kategoriaNev)
+        ->where(function($q) use ($userId) {
+            $q->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
+        })->first();
+
+    // Ha nem találjuk, létrehozunk egy felhasználóspecifikus kategóriát
+    if (!$kat) {
+        $kat = kategoria::create([
+            'felhasznaloid' => $userId,
+            'nev' => $kategoriaNev
+        ]);
+    }
+
+    // Pénznem keresése (case-insensitive keresés)
+    $penznemRecord = penznem::whereRaw('LOWER(nev) = LOWER(?)', [$penznemNev])->first();
+    if (!$penznemRecord) {
+        return back()->withErrors(['penznem' => 'A megadott pénznem nem létezik az adatbázisban.']);
+    }
+
+    $tranzakcio->update([
+        'kategoriaid' => $kat->id,
+        'penznemid' => $penznemRecord->id,
+        'osszeg' => request('osszeg'),
+        'megjegyzes' => request('megjegyzes'),
+        'rogzites' => request('rogzites')
+    ]);
+
+    return redirect('/fooldal')->with('success', 'Költség sikeresen szerkesztve!');
+});
+
+Route::delete('/koltseg/delete/{id}', function ($id) {
+    if (!session('user')) {
+        return redirect('/login');
+    }
+
+    $tranzakcio = Tranzakcio::find($id);
+
+    if (!$tranzakcio) {
+        return redirect('/fooldal')->withErrors(['error' => 'A költség nem található!']);
+    }
+
+    // Ellenőrzés: csak a saját költségét lehet törölni
+    if ($tranzakcio->felhasznaloid !== session('user')->id) {
+        return redirect('/fooldal')->withErrors(['error' => 'Nincs jogod ezt a költséget törölni!']);
+    }
+
+    $tranzakcio->delete();
+
+    return redirect('/fooldal')->with('success', 'Költség sikeresen törölve!');
+});
+
+Route::get('/arfolyam/frissites', function () {
+    if (!session('user')) {
+        return redirect('/login');
+    }
+
+    // Árfolyamok frissítése az API-ból
+    return response()->json([
+        'message' => 'Az árfolyamok frissítési parancs elindítva.',
+        'info' => 'Kérjük, futtassa le az alábbi parancsot a terminálban: php artisan app:update-exchange-rates'
+    ]);
+});
+
 Route::get('/statisztika', [StatController::class, 'index'])->name('statisztika.index');
+
+// Setup route - adatbázis inicializáláshoz
+Route::get('/setup/migrate', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return response()->json(['success' => true, 'message' => 'Migrációk sikeresen futtatva!']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/setup/seed', function () {
+    try {
+        // Csak az ArfbazisSeeder futtatása
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ArfbazisSeeder', '--force' => true]);
+        return response()->json(['success' => true, 'message' => 'Árfolyam seeder sikeresen futtatva!']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/setup/refresh-rates', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('app:update-exchange-rates');
+        return response()->json(['success' => true, 'message' => 'Árfolyamok sikeresen frissítve!']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/setup/all', function () {
+    try {
+        $result = [];
+        
+        $result['migrate'] = 'Migrációk futtatása...';
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $result['migrate'] = 'Sikeresen futtatva!';
+        
+        $result['seed'] = 'Seeder-ek futtatása...';
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        $result['seed'] = 'Sikeresen futtatva!';
+        
+        $result['rates'] = 'Árfolyamok frissítése...';
+        \Illuminate\Support\Facades\Artisan::call('app:update-exchange-rates');
+        $result['rates'] = 'Sikeresen futtatva!';
+        
+        return response()->json(['success' => true, 'steps' => $result]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
