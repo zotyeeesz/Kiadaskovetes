@@ -6,6 +6,7 @@ use App\Models\arbazis;
 use App\Models\penznem;
 use App\Models\Tranzakcio;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 class ExchangeRateService
 {
@@ -13,6 +14,137 @@ class ExchangeRateService
      * Az alapértelmezett pénznem (HUF)
      */
     const BASE_CURRENCY = 'HUF';
+    const RATE_TTL_HOURS = 6;
+
+    /**
+     * Egy HTTP kérésen belül csak egyszer próbáljunk frissíteni.
+     */
+    private static bool $refreshAttemptedInRequest = false;
+
+    private function normalizeCurrency(?string $currency): string
+    {
+        return strtoupper(trim((string) $currency));
+    }
+
+    private function isRateFresh(?arbazis $rateRow): bool
+    {
+        if (!$rateRow || !$rateRow->updated_at) {
+            return false;
+        }
+
+        return $rateRow->updated_at->gte(now()->subHours(self::RATE_TTL_HOURS));
+    }
+
+    private function getRateRowByCurrency(string $currency): ?arbazis
+    {
+        $currency = $this->normalizeCurrency($currency);
+
+        return arbazis::whereHas('penznem', function ($q) use ($currency) {
+            $q->whereRaw('UPPER(TRIM(nev)) = ?', [$currency]);
+        })->first();
+    }
+
+    private function fetchLatestRates(): array
+    {
+        $urls = [
+            'https://open.er-api.com/v6/latest/' . self::BASE_CURRENCY,
+            'https://api.exchangerate-api.com/v4/latest/' . self::BASE_CURRENCY,
+        ];
+
+        foreach ($urls as $url) {
+            try {
+                $response = Http::timeout(10)->get($url);
+                if (!$response->successful()) {
+                    continue;
+                }
+
+                $payload = $response->json();
+                if (isset($payload['rates']) && is_array($payload['rates']) && !empty($payload['rates'])) {
+                    return $payload['rates'];
+                }
+            } catch (\Throwable $e) {
+                // Sikertelen API hívás esetén a következő forrást próbáljuk.
+            }
+        }
+
+        return [];
+    }
+
+    private function refreshRatesFromApi(): void
+    {
+        if (self::$refreshAttemptedInRequest) {
+            return;
+        }
+        self::$refreshAttemptedInRequest = true;
+
+        try {
+            $penznemek = penznem::all();
+            if ($penznemek->isEmpty()) {
+                return;
+            }
+
+            $rates = $this->fetchLatestRates();
+            if (empty($rates)) {
+                return;
+            }
+
+            foreach ($penznemek as $penznem) {
+                $code = $this->normalizeCurrency($penznem->nev);
+
+                if ($code === self::BASE_CURRENCY) {
+                    arbazis::updateOrCreate(
+                        ['penznemid' => $penznem->id],
+                        ['arfolyam' => 1.0]
+                    );
+                    continue;
+                }
+
+                if (!isset($rates[$code]) || $rates[$code] <= 0) {
+                    continue;
+                }
+
+                $invertedRate = 1 / $rates[$code];
+
+                arbazis::updateOrCreate(
+                    ['penznemid' => $penznem->id],
+                    ['arfolyam' => $invertedRate]
+                );
+            }
+        } catch (\Throwable $e) {
+            // Ha nem sikerül frissíteni, maradnak a jelenlegi adatbázis árfolyamok.
+        }
+    }
+
+    private function refreshRatesIfNeeded(array $requiredCurrencies = []): void
+    {
+        try {
+            $currencies = collect($requiredCurrencies)
+                ->map(fn($c) => $this->normalizeCurrency($c))
+                ->filter()
+                ->reject(fn($c) => $c === self::BASE_CURRENCY)
+                ->unique()
+                ->values();
+
+            if ($currencies->isEmpty()) {
+                $hasFreshRates = arbazis::where('updated_at', '>=', now()->subHours(self::RATE_TTL_HOURS))->exists();
+                if (!$hasFreshRates) {
+                    $this->refreshRatesFromApi();
+                }
+                return;
+            }
+
+            $needRefresh = $currencies->contains(function ($currency) {
+                $rateRow = $this->getRateRowByCurrency($currency);
+                return !$this->isRateFresh($rateRow);
+            });
+
+            if ($needRefresh) {
+                $this->refreshRatesFromApi();
+            }
+        } catch (\Throwable $e) {
+            // Ha a frissítés-ellenőrzés hibázik, fallback az adatbázisban levő árfolyam.
+        }
+    }
 
     /**
      * Konvertál egy összeget egyik pénznemből a másikba
@@ -24,6 +156,9 @@ class ExchangeRateService
      */
     public function convert(float $amount, string $fromCurrency, string $toCurrency): ?float
     {
+        $fromCurrency = $this->normalizeCurrency($fromCurrency);
+        $toCurrency = $this->normalizeCurrency($toCurrency);
+
         if ($fromCurrency === $toCurrency) {
             return $amount;
         }
@@ -31,9 +166,9 @@ class ExchangeRateService
         try {
             // Ha az egyik HUF, könnyebb kezelhetőség
             if ($fromCurrency === self::BASE_CURRENCY) {
-                // HUF-ból bármi másra konvertálás
+                // HUF-ból bármi másra konvertálás: ha 1 CUR = X HUF, akkor HUF -> CUR osztás.
                 $rate = $this->getRate($toCurrency);
-                return $rate ? $amount * $rate : null;
+                return ($rate && $rate > 0) ? $amount / $rate : null;
             } elseif ($toCurrency === self::BASE_CURRENCY) {
                 // Bármiből HUF-ra konvertálás
                 // 1 fromCurrency = ? HUF (ezt tároljuk az adatbázisban)
@@ -59,20 +194,24 @@ class ExchangeRateService
      */
     public function getRate(string $currency): ?float
     {
+        $currency = $this->normalizeCurrency($currency);
+
         if ($currency === self::BASE_CURRENCY) {
             return 1.0; // 1 HUF = 1 HUF
         }
 
         try {
-            $penznem = penznem::where('nev', $currency)->first();
-            
+            $this->refreshRatesIfNeeded([$currency]);
+
+            $penznem = penznem::whereRaw('UPPER(TRIM(nev)) = ?', [$currency])->first();
+             
             if (!$penznem) {
                 return null;
             }
 
             $arfolyam = arbazis::where('penznemid', $penznem->id)->first();
-            
-            return $arfolyam ? $arfolyam->arfolyam : null;
+             
+            return $arfolyam ? (float) $arfolyam->arfolyam : null;
         } catch (\Exception $e) {
             return null;
         }
@@ -86,11 +225,21 @@ class ExchangeRateService
      */
     public function convertAllToHUF(Collection $tranzakciok): Collection
     {
+        $currencies = $tranzakciok
+            ->map(fn($t) => $this->normalizeCurrency($t->penznem->nev ?? ''))
+            ->filter()
+            ->all();
+
+        $this->refreshRatesIfNeeded($currencies);
+
         $arfolyamok = arbazis::with('penznem')->get()->keyBy('penznemid');
 
         return $tranzakciok->map(function($t) use ($arfolyamok) {
             $arfolyam = $arfolyamok->get($t->penznemid);
-            $rate = $arfolyam ? $arfolyam->arfolyam : 1;
+            $rate = $arfolyam ? (float) $arfolyam->arfolyam : $this->getRate($t->penznem->nev ?? self::BASE_CURRENCY);
+            if (!$rate || $rate <= 0) {
+                $rate = 1;
+            }
             $t->osszeghuf = $t->osszeg * $rate;
             return $t;
         });
@@ -103,6 +252,7 @@ class ExchangeRateService
      */
     public function getAllRates(): Collection
     {
+        $this->refreshRatesIfNeeded();
         return arbazis::with('penznem')->get()->keyBy('penznemid');
     }
 

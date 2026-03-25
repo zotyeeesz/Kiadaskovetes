@@ -11,6 +11,111 @@ use App\Models\arbazis;
 use App\Http\Controllers\StatController;
 use App\Services\ExchangeRateService;
 
+function defaultCategoryNames(): array
+{
+    return [
+        'bevásárlás',
+        'szórakozás',
+        'vendéglátás',
+        'egészség',
+        'ruházat',
+        'közlekedés',
+        'befektetés',
+        'készpénzbefizetés',
+    ];
+}
+
+function getSuggestedCategories(int $userId)
+{
+    $databaseCategories = kategoria::where('felhasznaloid', $userId)
+        ->orWhereNull('felhasznaloid')
+        ->get();
+
+    $defaultCategories = collect(defaultCategoryNames())->map(function ($nev) {
+        return new kategoria([
+            'felhasznaloid' => null,
+            'nev' => $nev,
+        ]);
+    });
+
+    return $defaultCategories
+        ->concat($databaseCategories)
+        ->groupBy(function ($kategoria) {
+            return mb_strtolower(trim($kategoria->nev));
+        })
+        ->map(function ($group) {
+            return $group->sortByDesc(function ($kategoria) {
+                return $kategoria->felhasznaloid ? 1 : 0;
+            })->first();
+        })
+        ->sortBy('nev', SORT_NATURAL | SORT_FLAG_CASE)
+        ->values();
+}
+
+function findOrCreateCategory(string $kategoriaNev, int $userId): kategoria
+{
+    $trimmedName = trim($kategoriaNev);
+
+    $existingCategory = kategoria::whereRaw('LOWER(TRIM(nev)) = LOWER(?)', [$trimmedName])
+        ->where(function ($q) use ($userId) {
+            $q->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
+        })
+        ->orderByRaw('CASE WHEN felhasznaloid IS NULL THEN 1 ELSE 0 END')
+        ->first();
+
+    if ($existingCategory) {
+        return $existingCategory;
+    }
+
+    return kategoria::create([
+        'felhasznaloid' => $userId,
+        'nev' => $trimmedName,
+    ]);
+}
+
+function normalizeAmountValue($amount): ?float
+{
+    if ($amount === null) {
+        return null;
+    }
+
+    $normalized = str_replace([' ', ','], ['', '.'], trim((string) $amount));
+
+    if ($normalized === '' || !is_numeric($normalized)) {
+        return null;
+    }
+
+    return (float) $normalized;
+}
+
+function normalizeCurrencyCode(?string $currency): string
+{
+    $normalized = strtoupper(trim((string) $currency));
+    return preg_replace('/\s+/', '', $normalized);
+}
+
+function findOrCreateCurrency(string $currencyInput): ?penznem
+{
+    $currencyCode = normalizeCurrencyCode($currencyInput);
+
+    if ($currencyCode === '') {
+        return null;
+    }
+
+    $existingCurrency = penznem::whereRaw('UPPER(TRIM(nev)) = ?', [$currencyCode])->first();
+    if ($existingCurrency) {
+        return $existingCurrency;
+    }
+
+    if (!preg_match('/^[A-Z]{3}$/', $currencyCode)) {
+        return null;
+    }
+
+    return penznem::create([
+        'nev' => $currencyCode,
+    ]);
+}
+
 Route::get('/', function () {
     return view('login');
 });
@@ -58,13 +163,8 @@ Route::get('/fooldal', function () {
     // Az összegek átváltása forintra az ExchangeRateService segítségével
     $tranzakciokAtvalasztva = $exchangeRateService->convertAllToHUF($tranzakciok);
     
-    $rawKats = kategoria::where('felhasznaloid', $userId)->orWhereNull('felhasznaloid')->orderBy('nev', 'asc')->get();
-    $kategoriak = $rawKats->groupBy(function($k){
-        return mb_strtolower(trim($k->nev));
-    })->map(function($group){
-        return $group->sortByDesc(function($k){ return $k->felhasznaloid ? 1 : 0; })->first();
-    })->values();
-    $penznemek = penznem::all();
+    $kategoriak = getSuggestedCategories($userId);
+    $penznemek = penznem::orderBy('nev')->get();
 
     // Statisztikai adatok - forint-alapú számítások
     $total = $tranzakciokAtvalasztva->sum('osszeghuf');
@@ -102,35 +202,34 @@ Route::post('/koltseg/add', function () {
     }
     
     $kategoriaNev = trim(request('kategoria'));
-    $penznemNev = trim(request('penznem'));
+    $penznemNev = request('penznem');
     $userId = session('user')->id;
+    $osszeg = normalizeAmountValue(request('osszeg'));
 
-    // Kategória keresése (felhasználó-specifikus vagy globális)
-    $kat = kategoria::where('nev', $kategoriaNev)
-        ->where(function($q) use ($userId) {
-            $q->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
-        })->first();
-
-    // Ha nem találjuk, létrehozunk egy felhasználóspecifikus kategóriát
-    if (!$kat) {
-        $kat = kategoria::create([
-            'felhasznaloid' => $userId,
-            'nev' => $kategoriaNev
-        ]);
+    if ($kategoriaNev === '') {
+        return back()->withErrors(['kategoria' => 'Adj meg egy kategóriát.'])->withInput();
     }
 
-    // Pénznem keresése (case-insensitive keresés)
-    $penznemRecord = penznem::whereRaw('LOWER(nev) = LOWER(?)', [$penznemNev])->first();
+    if ($osszeg === null || $osszeg < 0) {
+        return back()->withErrors(['osszeg' => 'Adj meg egy érvényes összeget.'])->withInput();
+    }
+
+    if (!request('rogzites')) {
+        return back()->withErrors(['rogzites' => 'Adj meg egy dátumot.'])->withInput();
+    }
+
+    $kat = findOrCreateCategory($kategoriaNev, $userId);
+
+    $penznemRecord = findOrCreateCurrency($penznemNev);
     if (!$penznemRecord) {
-        // Ha nem létezik a pénznem, kezeljük az errort
-        return back()->withErrors(['penznem' => 'A megadott pénznem nem létezik az adatbázisban.']);
+        return back()->withErrors(['penznem' => 'A pénznem 3 betűs kód legyen (például HUF, EUR, USD).'])->withInput();
     }
 
     Tranzakcio::create([
         'felhasznaloid' => $userId,
         'kategoriaid' => $kat->id,
         'penznemid' => $penznemRecord->id,
-        'osszeg' => request('osszeg'),
+        'osszeg' => $osszeg,
         'megjegyzes' => request('megjegyzes'),
         'rogzites' => request('rogzites')
     ]);
@@ -170,33 +269,33 @@ Route::put('/koltseg/edit/{id}', function ($id) {
     }
 
     $kategoriaNev = trim(request('kategoria'));
-    $penznemNev = trim(request('penznem'));
+    $penznemNev = request('penznem');
     $userId = session('user')->id;
+    $osszeg = normalizeAmountValue(request('osszeg'));
 
-    // Kategória keresése (felhasználó-specifikus vagy globális)
-    $kat = kategoria::where('nev', $kategoriaNev)
-        ->where(function($q) use ($userId) {
-            $q->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
-        })->first();
-
-    // Ha nem találjuk, létrehozunk egy felhasználóspecifikus kategóriát
-    if (!$kat) {
-        $kat = kategoria::create([
-            'felhasznaloid' => $userId,
-            'nev' => $kategoriaNev
-        ]);
+    if ($kategoriaNev === '') {
+        return back()->withErrors(['kategoria' => 'Adj meg egy kategóriát.'])->withInput();
     }
 
-    // Pénznem keresése (case-insensitive keresés)
-    $penznemRecord = penznem::whereRaw('LOWER(nev) = LOWER(?)', [$penznemNev])->first();
+    if ($osszeg === null || $osszeg < 0) {
+        return back()->withErrors(['osszeg' => 'Adj meg egy érvényes összeget.'])->withInput();
+    }
+
+    if (!request('rogzites')) {
+        return back()->withErrors(['rogzites' => 'Adj meg egy dátumot.'])->withInput();
+    }
+
+    $kat = findOrCreateCategory($kategoriaNev, $userId);
+
+    $penznemRecord = findOrCreateCurrency($penznemNev);
     if (!$penznemRecord) {
-        return back()->withErrors(['penznem' => 'A megadott pénznem nem létezik az adatbázisban.']);
+        return back()->withErrors(['penznem' => 'A pénznem 3 betűs kód legyen (például HUF, EUR, USD).'])->withInput();
     }
 
     $tranzakcio->update([
         'kategoriaid' => $kat->id,
         'penznemid' => $penznemRecord->id,
-        'osszeg' => request('osszeg'),
+        'osszeg' => $osszeg,
         'megjegyzes' => request('megjegyzes'),
         'rogzites' => request('rogzites')
     ]);
@@ -251,9 +350,10 @@ Route::get('/setup/migrate', function () {
 
 Route::get('/setup/seed', function () {
     try {
-        // Csak az ArfbazisSeeder futtatása
+        // Előbb pénznemek, utána árfolyamok
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'PenznemSeeder', '--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ArfbazisSeeder', '--force' => true]);
-        return response()->json(['success' => true, 'message' => 'Árfolyam seeder sikeresen futtatva!']);
+        return response()->json(['success' => true, 'message' => 'Pénznem és árfolyam seederek sikeresen futtatva!']);
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }

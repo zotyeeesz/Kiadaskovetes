@@ -86,6 +86,15 @@
         table tr:hover {
             background-color: #f5f5f5;
         }
+        .amount-cell strong {
+            display: block;
+        }
+        .converted-amount {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #777;
+        }
         .delete-btn {
             background: none;
             border: none;
@@ -251,6 +260,11 @@
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        .field-help {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #777;
         }
         .kategoria-list {
             position: absolute;
@@ -468,6 +482,11 @@
         function closeModal() {
             document.getElementById('koltsegModal').classList.remove('show');
         }
+        @if($errors->any())
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('koltsegModal').classList.add('show');
+        });
+        @endif
         function filterKategoriak() {
             const input = document.getElementById('kategoria_input').value.toLowerCase();
             const list = document.getElementById('kategoria_list');
@@ -594,7 +613,6 @@
                             <th>Dátum</th>
                             <th>Kategória</th>
                             <th>Összeg</th>
-                            <th>Forint érték</th>
                             <th>Leírás</th>
                             <th>Műveletek</th>
                         </tr>
@@ -604,8 +622,12 @@
                                 <td>
                                     {{ $item->kategoria->nev ?? (\App\Models\kategoria::find($item->kategoriaid)->nev ?? '-') }}
                                 </td>
-                                <td><strong>{{ number_format($item->osszeg, 2, ',', ' ') }}</strong> {{ $item->penznem->nev }}</td>
-                                <td><strong>{{ number_format($item->osszeghuf, 0, ',', ' ') }}</strong> Ft</td>
+                                <td class="amount-cell">
+                                    <strong>{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}</strong>
+                                    @if(($item->penznem->nev ?? null) !== 'HUF' && $item->osszeghuf)
+                                        <span class="converted-amount">{{ number_format($item->osszeghuf, 0, ',', ' ') }} Ft</span>
+                                    @endif
+                                </td>
                                 <td>{{ $item->megjegyzes }}</td>
                                 <td>
                                     <button class="delete-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">✏️</button>
@@ -688,19 +710,20 @@
                 @csrf
                 <!--Kategória-->
                 <div class="kategoria-input-wrapper" id="kategoria_wrapper">
-                    <input type="text" id="kategoria_input" name="kategoria" placeholder="Kategória" required
+                    <input type="text" id="kategoria_input" name="kategoria" placeholder="Kategória" value="{{ old('kategoria') }}" required
                         oninput="filterKategoriak()" onclick="document.getElementById('kategoria_list').classList.add('show')">
                     <div id="kategoria_list" class="kategoria-list">                        
                         @foreach($kategoriak as $kat)
                             <div class="kategoria-item" onclick="selectKategoria('{{ $kat->nev }}')">{{ $kat->nev }}</div>
                         @endforeach
                     </div>
+                    <div class="field-help">Választhatsz az ajánlott kategóriák közül, vagy beírhatsz sajátot is.</div>
                 </div>
 
-                <input type="text" name="osszeg" placeholder="Összeg" required>
+                <input type="text" name="osszeg" placeholder="Összeg" value="{{ old('osszeg') }}" required>
                 <!--Pénznem-->
                 <div class="kategoria-input-wrapper" id="penznem_wrapper">
-                    <input type="text" id="penznem_input" name="penznem" placeholder="Pénznem" required
+                    <input type="text" id="penznem_input" name="penznem" placeholder="Pénznem" value="{{ old('penznem', 'HUF') }}" required
                            oninput="filterPenznemek()" onclick="document.getElementById('penznem_list').classList.add('show')">
                     <div id="penznem_list" class="kategoria-list">
                         @foreach($penznemek as $penznem)
@@ -709,8 +732,8 @@
                     </div>
                 </div>
                 
-                <input type="date" name="rogzites" required>
-                <textarea name="megjegyzes" placeholder="Leírás (megjegyzés)"></textarea>
+                <input type="date" name="rogzites" value="{{ old('rogzites') }}" required>
+                <textarea name="megjegyzes" placeholder="Leírás (megjegyzés)">{{ old('megjegyzes') }}</textarea>
                 <button type="submit">Költség Hozzáadása</button>
             </form>
         </div>
