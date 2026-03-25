@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use App\Models\felhasznalo;
 use App\Models\Tranzakcio;
 use App\Models\kategoria;
@@ -114,6 +119,75 @@ function ensureTipusColumnExists(): bool
     }
 }
 
+function ensureEmailVerificationColumnsExist(): bool
+{
+    try {
+        $needsSchemaChange = false;
+        $hasEmailVerifiedAt = Schema::hasColumn('felhasznalo', 'email_verified_at');
+        $hasVerificationToken = Schema::hasColumn('felhasznalo', 'verification_token');
+        $hasVerificationSentAt = Schema::hasColumn('felhasznalo', 'verification_sent_at');
+
+        if (!$hasEmailVerifiedAt || !$hasVerificationToken || !$hasVerificationSentAt) {
+            $needsSchemaChange = true;
+        }
+
+        if ($needsSchemaChange) {
+            Schema::table('felhasznalo', function (\Illuminate\Database\Schema\Blueprint $table) use ($hasEmailVerifiedAt, $hasVerificationToken, $hasVerificationSentAt) {
+                if (!$hasEmailVerifiedAt) {
+                    $table->timestamp('email_verified_at')->nullable();
+                }
+                if (!$hasVerificationToken) {
+                    $table->string('verification_token', 100)->nullable();
+                }
+                if (!$hasVerificationSentAt) {
+                    $table->timestamp('verification_sent_at')->nullable();
+                }
+            });
+        }
+
+        return Schema::hasColumn('felhasznalo', 'email_verified_at')
+            && Schema::hasColumn('felhasznalo', 'verification_token')
+            && Schema::hasColumn('felhasznalo', 'verification_sent_at');
+    } catch (\Throwable $e) {
+        return false;
+    }
+}
+
+function sendVerificationEmail(felhasznalo $user): bool
+{
+    try {
+        $plainToken = Str::random(64);
+        $user->verification_token = hash('sha256', $plainToken);
+        $user->verification_sent_at = now();
+        $user->save();
+
+        $verifyUrl = URL::temporarySignedRoute(
+            'email.verify',
+            now()->addHours(24),
+            [
+                'token' => $plainToken,
+                'email' => $user->email,
+            ]
+        );
+
+        Mail::raw(
+            "Szia {$user->nev}!\n\nKérlek erősítsd meg az email címed az alábbi linkre kattintva:\n{$verifyUrl}\n\nA link biztonsági okból 24 óráig érvényes.\n\nHa nem te regisztráltál, hagyd figyelmen kívül ezt az üzenetet.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Email megerősítés - Költség Követő');
+            }
+        );
+
+        return true;
+    } catch (\Throwable $e) {
+        Log::error('Verification email send failed.', [
+            'email' => $user->email,
+            'error' => $e->getMessage(),
+        ]);
+        return false;
+    }
+}
+
 function normalizeCurrencyCode(?string $currency): string
 {
     $normalized = strtoupper(trim((string) $currency));
@@ -151,9 +225,18 @@ Route::get('/login', function () {
 });
 
 Route::post('/login', function () {
+    $verificationEnabled = ensureEmailVerificationColumnsExist();
+
     $user = felhasznalo::where('email', request('email'))->first();
     
     if ($user && Hash::check(request('password'), $user->password)) {
+        if ($verificationEnabled && empty($user->email_verified_at)) {
+            return back()
+                ->withErrors(['A bejelentkezéshez előbb erősítsd meg az email címed.'])
+                ->withInput(['email' => request('email')])
+                ->with('pending_verification_email', $user->email);
+        }
+
         session(['user' => $user]);
         return redirect('/fooldal');
     }
@@ -171,8 +254,20 @@ Route::get('/fooldal', function () {
     if (!session('user')) {
         return redirect('/login');
     }
+    $verificationEnabled = ensureEmailVerificationColumnsExist();
     $hasTipusColumn = ensureTipusColumnExists();
-    $userId = session('user')->id;
+    $currentUser = felhasznalo::find(session('user')->id);
+    if (!$currentUser) {
+        session()->flush();
+        return redirect('/login')->withErrors(['A munkamenet lejárt, jelentkezz be újra.']);
+    }
+    if ($verificationEnabled && empty($currentUser->email_verified_at)) {
+        session()->flush();
+        return redirect('/login')
+            ->withErrors(['A fiókod még nincs megerősítve. Előbb igazold az email címed.'])
+            ->with('pending_verification_email', $currentUser->email);
+    }
+    $userId = $currentUser->id;
 
     $exchangeRateService = new ExchangeRateService();
 
@@ -221,16 +316,140 @@ Route::get('/felhasznalo/add', function () {
 });
 
 Route::post('/felhasznalo/add', function () {
-    felhasznalo::create([
-        'nev' => request('nev'),
-        'email' => request('email'),
-        'password' => Hash::make(request('password')),
-        'telefon' => request('telefonszam'),
-        'orszag' => request('orszag'),
-        'telepules' => request('telepules'),
+    $verificationEnabled = ensureEmailVerificationColumnsExist();
+
+    $validated = request()->validate(
+        [
+            'nev' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:felhasznalo,email'],
+            'password' => ['required', 'string', 'min:6'],
+            'telefonszam' => ['nullable', 'string', 'max:15', 'unique:felhasznalo,telefon'],
+            'orszag' => ['nullable', 'string', 'max:255'],
+            'telepules' => ['nullable', 'string', 'max:255'],
+        ],
+        [
+            'nev.required' => 'A nev megadasa kotelezo.',
+            'email.required' => 'Az email megadasa kotelezo.',
+            'email.email' => 'Ervenyes email cimet adj meg.',
+            'email.unique' => 'Ez az email cim mar regisztralva van.',
+            'password.required' => 'A jelszo megadasa kotelezo.',
+            'password.min' => 'A jelszonak legalabb 6 karakternek kell lennie.',
+            'telefonszam.unique' => 'Ez a telefonszam mar hasznalatban van.',
+        ]
+    );
+
+    $phone = trim((string) ($validated['telefonszam'] ?? ''));
+
+    $user = felhasznalo::create([
+        'nev' => trim($validated['nev']),
+        'email' => strtolower(trim($validated['email'])),
+        'password' => Hash::make($validated['password']),
+        'telefon' => $phone === '' ? null : $phone,
+        'orszag' => isset($validated['orszag']) ? trim((string) $validated['orszag']) : null,
+        'telepules' => isset($validated['telepules']) ? trim((string) $validated['telepules']) : null,
     ]);
-    return redirect('/login')->with('success', 'Regisztráció sikeres! Jelentkezz be!');
+
+    if (!$verificationEnabled) {
+        return redirect('/login')->with('success', 'Regisztráció sikeres! Jelentkezz be!');
+    }
+
+    $emailSent = sendVerificationEmail($user);
+
+    if ($emailSent) {
+        return redirect('/login')->with('success', 'Regisztráció sikeres! Küldtünk egy megerősítő emailt.');
+    }
+
+    return redirect('/login')
+        ->with('success', 'Regisztráció sikeres! Az email küldése nem sikerült, kérj új megerősítő linket.')
+        ->with('pending_verification_email', $user->email);
 });
+
+Route::get('/email/verify/{token}', function ($token) {
+    if (!ensureEmailVerificationColumnsExist()) {
+        return redirect('/login')->withErrors(['Az email megerosites most nem erheto el.']);
+    }
+
+    if (empty($token)) {
+        return redirect('/login')->withErrors(['Ervenytelen megerosito link.']);
+    }
+
+    if (!request()->hasValidSignature()) {
+        return redirect('/login')->withErrors(['A megerosito link ervenytelen vagy lejart. Kerj uj megerosito emailt.']);
+    }
+
+    $email = strtolower(trim((string) request()->query('email')));
+    if ($email === '') {
+        return redirect('/login')->withErrors(['A megerosito link hianyos. Kerj uj megerosito emailt.']);
+    }
+
+    $user = felhasznalo::where('email', $email)->first();
+    if (!$user) {
+        return redirect('/login')->withErrors(['A megerosito link ervenytelen vagy mar fel lett hasznalva.']);
+    }
+
+    if (!empty($user->email_verified_at)) {
+        return redirect('/login')->with('success', 'Ez az email cim mar meg lett erositve, bejelentkezhetsz.');
+    }
+
+    $storedToken = (string) ($user->verification_token ?? '');
+    $tokenHash = hash('sha256', (string) $token);
+    $matchesHashedToken = $storedToken !== '' && hash_equals($storedToken, $tokenHash);
+    $matchesLegacyToken = $storedToken !== '' && hash_equals($storedToken, (string) $token);
+
+    if (!$matchesHashedToken && !$matchesLegacyToken) {
+        return redirect('/login')->withErrors(['A megerosito link ervenytelen vagy mar fel lett hasznalva.']);
+    }
+
+    if (!empty($user->verification_sent_at) && Carbon::parse($user->verification_sent_at)->lt(now()->subHours(24))) {
+        return redirect('/login')
+            ->withErrors(['A megerosito link lejart. Kerj uj megerosito emailt.'])
+            ->with('pending_verification_email', $user->email);
+    }
+
+    $user->email_verified_at = now();
+    $user->verification_token = null;
+    $user->save();
+
+    return redirect('/login')->with('success', 'Email cim sikeresen megerositve! Most mar be tudsz jelentkezni.');
+})->name('email.verify');
+
+Route::post('/email/verify/resend', function () {
+    if (!ensureEmailVerificationColumnsExist()) {
+        return back()->withErrors(['Az email megerősítés most nem elérhető.']);
+    }
+
+    $email = strtolower(trim((string) request('email')));
+    if ($email === '') {
+        return back()->withErrors(['Adj meg egy email címet az újraküldéshez.']);
+    }
+
+    $user = felhasznalo::where('email', $email)->first();
+    if (!$user) {
+        return back()->with('success', 'Ha létezik ilyen email, új megerősítő linket küldtünk.');
+    }
+
+    if (!empty($user->email_verified_at)) {
+        return back()->with('success', 'Ez az email cím már meg van erősítve, bejelentkezhetsz.');
+    }
+
+    if (!empty($user->verification_sent_at) && Carbon::parse($user->verification_sent_at)->gt(now()->subMinutes(1))) {
+        return back()
+            ->withErrors(['Most küldtünk megerősítő emailt. Kérlek várj legalább 1 percet az újraküldésig.'])
+            ->with('pending_verification_email', $user->email);
+    }
+
+
+    $emailSent = sendVerificationEmail($user);
+    if (!$emailSent) {
+        return back()
+            ->withErrors(['Az email küldése most nem sikerült, próbáld újra később.'])
+            ->with('pending_verification_email', $user->email);
+    }
+
+    return back()
+        ->with('success', 'Új megerősítő email elküldve.')
+        ->with('pending_verification_email', $user->email);
+})->middleware('throttle:3,1');
 
 Route::post('/koltseg/add', function () {
     if (!session('user')) {

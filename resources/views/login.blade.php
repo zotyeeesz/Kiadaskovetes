@@ -85,6 +85,33 @@
             border-left: 3px solid green;
             border-radius: 3px;
         }
+        .resend-box {
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        .resend-box p {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #444;
+        }
+        .resend-box form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .resend-box input {
+            margin: 0;
+            flex: 1;
+        }
+        .resend-box button {
+            width: auto;
+            margin-top: 0;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
         /* Reszponzív beállítások */
         @media (max-width: 600px) {
             body {
@@ -123,10 +150,21 @@
         
         <form action="/login" method="POST">
             @csrf
-            <input type="email" name="email" placeholder="Email cím" required>
+            <input type="email" name="email" placeholder="Email cím" value="{{ old('email') }}" required>
             <input type="password" name="password" placeholder="Jelszó" required>
             <button type="submit">Bejelentkezés</button>
         </form>
+
+        @if(session('pending_verification_email'))
+            <div class="resend-box">
+                <p>Nem kaptad meg a megerősítő emailt? Itt újra tudod küldeni.</p>
+                <form action="/email/verify/resend" method="POST">
+                    @csrf
+                    <input type="email" name="email" value="{{ session('pending_verification_email') }}" required>
+                    <button type="submit">Újraküldés</button>
+                </form>
+            </div>
+        @endif
         
         <div class="register-link">
             Még nincs fiók? <a href="/felhasznalo/add">Regisztrálj most</a>

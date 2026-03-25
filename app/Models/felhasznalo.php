@@ -16,6 +16,14 @@ class felhasznalo extends Model
         'telefon',
         'orszag',
         'telepules',
+        'email_verified_at',
+        'verification_token',
+        'verification_sent_at',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'verification_sent_at' => 'datetime',
     ];
 
     public function kategoriak()

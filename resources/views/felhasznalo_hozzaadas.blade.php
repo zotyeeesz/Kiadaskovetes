@@ -57,6 +57,15 @@
         form button:hover {
             background-color: #5568d3;
         }
+        .info {
+            color: #0d47a1;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-left: 3px solid #0d47a1;
+            border-radius: 3px;
+            font-size: 13px;
+        }
         .error {
             color: #d32f2f;
             margin-bottom: 15px;
@@ -101,6 +110,9 @@
                 {{ session('success') }}
             </div>
         @endif
+        <div class="info">
+            Regisztráció után megerősítő emailt küldünk. A bejelentkezés csak megerősítés után lehetséges.
+        </div>
         
         <form action="/felhasznalo/add" method="POST">
             @csrf
