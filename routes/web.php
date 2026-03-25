@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\felhasznalo;
 use App\Models\Tranzakcio;
 use App\Models\kategoria;
@@ -88,6 +89,31 @@ function normalizeAmountValue($amount): ?float
     return (float) $normalized;
 }
 
+function normalizeTransactionType(?string $type): string
+{
+    return mb_strtolower(trim((string) $type));
+}
+
+function resolveTransactionType(?string $type): ?string
+{
+    $normalized = normalizeTransactionType($type);
+    return in_array($normalized, ['koltseg', 'bevetel'], true) ? $normalized : null;
+}
+
+function ensureTipusColumnExists(): bool
+{
+    try {
+        if (!Schema::hasColumn('tranzakcio', 'tipus')) {
+            Schema::table('tranzakcio', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->string('tipus', 20)->default('koltseg');
+            });
+        }
+        return Schema::hasColumn('tranzakcio', 'tipus');
+    } catch (\Throwable $e) {
+        return false;
+    }
+}
+
 function normalizeCurrencyCode(?string $currency): string
 {
     $normalized = strtoupper(trim((string) $currency));
@@ -145,6 +171,7 @@ Route::get('/fooldal', function () {
     if (!session('user')) {
         return redirect('/login');
     }
+    $hasTipusColumn = ensureTipusColumnExists();
     $userId = session('user')->id;
 
     $exchangeRateService = new ExchangeRateService();
@@ -167,12 +194,21 @@ Route::get('/fooldal', function () {
     $penznemek = penznem::orderBy('nev')->get();
 
     // Statisztikai adatok - forint-alapú számítások
-    $total = $tranzakciokAtvalasztva->sum('osszeghuf');
+    $expenseTotal = $tranzakciokAtvalasztva
+        ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+        ->sum('osszeghuf');
+    $incomeTotal = $tranzakciokAtvalasztva
+        ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+        ->sum('osszeghuf');
+    $balanceTotal = $incomeTotal - $expenseTotal;
     
     // Kategóriánkénti összegzés az ExchangeRateService segítségével
-    $byCategory = $exchangeRateService->getCategoryTotalsInHUF($tranzakciok)->take(5);
+    $expenseTransactions = $tranzakciok
+        ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+        ->values();
+    $byCategory = $exchangeRateService->getCategoryTotalsInHUF($expenseTransactions)->take(5);
 
-    return view('fooldal', compact('tranzakciokAtvalasztva','kategoriak','penznemek','total','byCategory', 'arfolyamok', 'tranzakciok'));
+    return view('fooldal', compact('tranzakciokAtvalasztva','kategoriak','penznemek','expenseTotal','incomeTotal','balanceTotal','byCategory', 'arfolyamok', 'tranzakciok', 'hasTipusColumn'));
 });
 
 Route::get('/teszt', function () {
@@ -200,9 +236,11 @@ Route::post('/koltseg/add', function () {
     if (!session('user')) {
         return redirect('/login');
     }
+    $hasTipusColumn = ensureTipusColumnExists();
     
     $kategoriaNev = trim(request('kategoria'));
     $penznemNev = request('penznem');
+    $tipus = resolveTransactionType(request('tipus'));
     $userId = session('user')->id;
     $osszeg = normalizeAmountValue(request('osszeg'));
 
@@ -218,6 +256,10 @@ Route::post('/koltseg/add', function () {
         return back()->withErrors(['rogzites' => 'Adj meg egy dátumot.'])->withInput();
     }
 
+    if (!$tipus) {
+        return back()->withErrors(['tipus' => 'Válassz tranzakció típust (költség vagy bevétel).'])->withInput();
+    }
+
     $kat = findOrCreateCategory($kategoriaNev, $userId);
 
     $penznemRecord = findOrCreateCurrency($penznemNev);
@@ -228,13 +270,14 @@ Route::post('/koltseg/add', function () {
     Tranzakcio::create([
         'felhasznaloid' => $userId,
         'kategoriaid' => $kat->id,
+        ...($hasTipusColumn ? ['tipus' => $tipus] : []),
         'penznemid' => $penznemRecord->id,
         'osszeg' => $osszeg,
         'megjegyzes' => request('megjegyzes'),
         'rogzites' => request('rogzites')
     ]);
     
-    return redirect('/fooldal')->with('success', 'Költség sikeresen hozzáadva!');
+    return redirect('/fooldal')->with('success', 'Tranzakció sikeresen hozzáadva!');
 });
 
 
@@ -256,6 +299,7 @@ Route::put('/koltseg/edit/{id}', function ($id) {
     if (!session('user')) {
         return redirect('/login');
     }
+    $hasTipusColumn = ensureTipusColumnExists();
 
     $tranzakcio = Tranzakcio::find($id);
 
@@ -270,6 +314,7 @@ Route::put('/koltseg/edit/{id}', function ($id) {
 
     $kategoriaNev = trim(request('kategoria'));
     $penznemNev = request('penznem');
+    $tipus = resolveTransactionType(request('tipus'));
     $userId = session('user')->id;
     $osszeg = normalizeAmountValue(request('osszeg'));
 
@@ -285,6 +330,10 @@ Route::put('/koltseg/edit/{id}', function ($id) {
         return back()->withErrors(['rogzites' => 'Adj meg egy dátumot.'])->withInput();
     }
 
+    if (!$tipus) {
+        return back()->withErrors(['tipus' => 'Válassz tranzakció típust (költség vagy bevétel).'])->withInput();
+    }
+
     $kat = findOrCreateCategory($kategoriaNev, $userId);
 
     $penznemRecord = findOrCreateCurrency($penznemNev);
@@ -294,13 +343,14 @@ Route::put('/koltseg/edit/{id}', function ($id) {
 
     $tranzakcio->update([
         'kategoriaid' => $kat->id,
+        ...($hasTipusColumn ? ['tipus' => $tipus] : []),
         'penznemid' => $penznemRecord->id,
         'osszeg' => $osszeg,
         'megjegyzes' => request('megjegyzes'),
         'rogzites' => request('rogzites')
     ]);
 
-    return redirect('/fooldal')->with('success', 'Költség sikeresen szerkesztve!');
+    return redirect('/fooldal')->with('success', 'Tranzakció sikeresen szerkesztve!');
 });
 
 Route::delete('/koltseg/delete/{id}', function ($id) {
@@ -321,7 +371,7 @@ Route::delete('/koltseg/delete/{id}', function ($id) {
 
     $tranzakcio->delete();
 
-    return redirect('/fooldal')->with('success', 'Költség sikeresen törölve!');
+    return redirect('/fooldal')->with('success', 'Tranzakció sikeresen törölve!');
 });
 
 Route::get('/arfolyam/frissites', function () {

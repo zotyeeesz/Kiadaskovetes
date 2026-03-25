@@ -38,8 +38,18 @@
 		<div class="card">
 			<div class="summary">
 				<div>
-					<div class="small-muted">Összes költés</div>
-					<div class="big">{{ number_format($total ?? 0, 0, ',', ' ') }} Ft</div>
+					<div class="small-muted">Összes kiadás</div>
+					<div class="big" style="color:#b00020;">{{ number_format($expenseTotal ?? 0, 0, ',', ' ') }} Ft</div>
+				</div>
+				<div>
+					<div class="small-muted">Összes bevétel</div>
+					<div class="big" style="color:#1b8f3a;">{{ number_format($incomeTotal ?? 0, 0, ',', ' ') }} Ft</div>
+				</div>
+				<div>
+					<div class="small-muted">Egyenleg</div>
+					<div class="big" style="color: {{ ($balanceTotal ?? 0) >= 0 ? '#1b8f3a' : '#b00020' }};">
+						{{ number_format($balanceTotal ?? 0, 0, ',', ' ') }} Ft
+					</div>
 				</div>
 				<div style="margin-left: auto; text-align: right;">
 					<div class="small-muted">Időszak</div>
@@ -53,14 +63,16 @@
 			@if($monthly && $monthly->count() > 0)
 				<table>
 					<thead>
-						<tr><th>Hónap</th><th>Összeg</th><th></th></tr>
+						<tr><th>Hónap</th><th>Kiadás</th><th>Bevétel</th><th>Egyenleg</th><th></th></tr>
 					</thead>
 					<tbody>
 						@foreach($monthly as $m)
 							<tr>
 								<td>{{ \Carbon\Carbon::createFromFormat('!m', $m->month)->locale(app()->getLocale())->isoFormat('MMMM') }}</td>
-								<td><strong>{{ number_format($m->total, 0, ',', ' ') }} Ft</strong></td>
-								<td class="small-muted">{{ number_format(($m->total / max($total,1)) * 100, 2) }} %</td>
+								<td><strong style="color:#b00020;">{{ number_format($m->expense, 0, ',', ' ') }} Ft</strong></td>
+								<td><strong style="color:#1b8f3a;">{{ number_format($m->income, 0, ',', ' ') }} Ft</strong></td>
+								<td><strong style="color: {{ $m->total >= 0 ? '#1b8f3a' : '#b00020' }};">{{ number_format($m->total, 0, ',', ' ') }} Ft</strong></td>
+								<td class="small-muted">{{ number_format(($m->expense / max($expenseTotal,1)) * 100, 2) }} % kiadás</td>
 							</tr>
 						@endforeach
 					</tbody>
@@ -71,11 +83,11 @@
 		</div>
 
 		<div class="card">
-			<h2>Kategória szerinti bontás</h2>
+			<h2>Kategória szerinti kiadás bontás</h2>
 			@if($byCategory && $byCategory->count() > 0)
 				<table>
 					<thead>
-						<tr><th>Kategória</th><th>Összeg</th><th>Arány</th></tr>
+						<tr><th>Kategória</th><th>Kiadás</th><th>Arány</th></tr>
 					</thead>
 					<tbody>
 						@foreach($byCategory as $item)
@@ -98,15 +110,17 @@
 		</div>
 
 		<div class="card">
-			<h2>Pénznemek szerinti összeg</h2>
+			<h2>Pénznemek szerinti bontás</h2>
 			@if($byCurrency && $byCurrency->count() > 0)
 				<table>
-					<thead><tr><th>Pénznem</th><th>Összeg</th></tr></thead>
+					<thead><tr><th>Pénznem</th><th>Kiadás</th><th>Bevétel</th><th>Egyenleg</th></tr></thead>
 					<tbody>
 						@foreach($byCurrency as $c)
 							<tr>
 								<td>{{ $c->currency }}</td>
-								<td><strong>{{ number_format($c->total, 0, ',', ' ') }}</strong></td>
+								<td><strong style="color:#b00020;">{{ number_format($c->expense, 0, ',', ' ') }} Ft</strong></td>
+								<td><strong style="color:#1b8f3a;">{{ number_format($c->income, 0, ',', ' ') }} Ft</strong></td>
+								<td><strong style="color: {{ $c->total >= 0 ? '#1b8f3a' : '#b00020' }};">{{ number_format($c->total, 0, ',', ' ') }} Ft</strong></td>
 							</tr>
 						@endforeach
 					</tbody>

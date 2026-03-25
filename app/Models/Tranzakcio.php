@@ -11,6 +11,7 @@ class Tranzakcio extends Model
     protected $fillable = [
         'felhasznaloid',
         'kategoriaid',
+        'tipus',
         'rogzites',
         'penznemid',
         'osszeg',

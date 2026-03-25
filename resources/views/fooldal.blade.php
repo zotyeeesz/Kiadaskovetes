@@ -89,11 +89,39 @@
         .amount-cell strong {
             display: block;
         }
+        .amount-expense {
+            color: #b00020;
+        }
+        .amount-income {
+            color: #1b8f3a;
+        }
         .converted-amount {
             display: block;
             margin-top: 4px;
             font-size: 12px;
             color: #777;
+        }
+        .converted-amount.amount-expense {
+            color: #b00020;
+        }
+        .converted-amount.amount-income {
+            color: #1b8f3a;
+        }
+        .type-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 2px 8px;
+            margin-bottom: 4px;
+        }
+        .type-expense {
+            background: #fde8ec;
+            color: #a3001e;
+        }
+        .type-income {
+            background: #e8f5e9;
+            color: #1b8f3a;
         }
         .delete-btn {
             background: none;
@@ -210,7 +238,7 @@
             margin-top: 0;
             color: #333;
         }
-        .modal form input, .modal form textarea {
+        .modal form input, .modal form textarea, .modal form select {
             display: block;
             width: 100%;
             margin: 15px 0;
@@ -221,7 +249,7 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-        .modal form input:focus, .modal form textarea:focus {
+        .modal form input:focus, .modal form textarea:focus, .modal form select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
@@ -427,9 +455,9 @@
             
             if (tranzakcioId) {
                 // Szerkesztés mód
-                title.textContent = 'Költség Szerkesztése';
+                title.textContent = 'Tranzakció Szerkesztése';
                 form.action = `/koltseg/edit/${tranzakcioId}`;
-                submitBtn.textContent = 'Költség Szerkesztése';
+                submitBtn.textContent = 'Tranzakció Mentése';
                 
                 // Hidden method field hozzáadása PUT-hez
                 let methodField = document.getElementById('methodField');
@@ -445,9 +473,9 @@
                 }
             } else {
                 // Új költség hozzáadása mód
-                title.textContent = 'Új Költség Hozzáadása';
+                title.textContent = 'Új Tranzakció Hozzáadása';
                 form.action = '/koltseg/add';
-                submitBtn.textContent = 'Költség Hozzáadása';
+                submitBtn.textContent = 'Tranzakció Hozzáadása';
                 
                 // Method field eltávolítása (POST-hoz nincs kell)
                 const methodField = document.getElementById('methodField');
@@ -458,13 +486,14 @@
                 // Form mezők ürítése
                 document.getElementById('kategoria_input').value = '';
                 document.getElementById('penznem_input').value = '';
+                document.getElementById('tipus_input').value = 'koltseg';
                 document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = '';
                 document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = '';
                 document.getElementById('koltsegForm').querySelector('textarea[name="megjegyzes"]').value = '';
             }
         }
         
-        function editTranzakcio(tranzakcioId, rogzites, kategoria, osszeg, penznem, megjegyzes) {
+        function editTranzakcio(tranzakcioId, rogzites, kategoria, osszeg, penznem, tipus, megjegyzes) {
             openModal(tranzakcioId);
             
             // Mezők feltöltése
@@ -473,6 +502,7 @@
             
             document.getElementById('penznem_input').value = penznem;
             document.getElementById('penznem_list').classList.remove('show');
+            document.getElementById('tipus_input').value = tipus || 'koltseg';
             
             document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = osszeg.replace(/\s/g, '').replace(',', '.');
             document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = rogzites;
@@ -561,7 +591,7 @@
         }
         
         function deleteTranzakcio(tranzakcioId, categoria, osszeg) {
-            if (confirm(`Biztosan törlöd ezt a költséget?\n\nKategória: ${categoria}\nÖsszeg: ${osszeg}`)) {
+            if (confirm(`Biztosan törlöd ezt a tranzakciót?\n\nKategória: ${categoria}\nÖsszeg: ${osszeg}`)) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/koltseg/delete/${tranzakcioId}`;
@@ -599,7 +629,7 @@
     
     <div class="container">
         <div style="margin-bottom: 20px;">
-            <button onclick="openModal()" class="add-btn">+ Új Költség</button>
+            <button onclick="openModal()" class="add-btn">+ Új Tranzakció</button>
             <button onclick="location.href='/statisztika'" class="add-btn">Statisztika</button>
         </div>
 
@@ -607,7 +637,7 @@
             <!-- Bal oldal: Költségek listája (3/5) -->
             <div class="left-column">
                 @if($tranzakciok->count() > 0)
-                    <h2>Költségeid</h2>
+                    <h2>Tranzakcióid</h2>
                     <table>
                         <tr>
                             <th>Dátum</th>
@@ -623,14 +653,20 @@
                                     {{ $item->kategoria->nev ?? (\App\Models\kategoria::find($item->kategoriaid)->nev ?? '-') }}
                                 </td>
                                 <td class="amount-cell">
-                                    <strong>{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}</strong>
+                                    @php $isIncome = (($item->tipus ?? 'koltseg') === 'bevetel'); @endphp
+                                    <span class="type-badge {{ $isIncome ? 'type-income' : 'type-expense' }}">{{ $isIncome ? 'Bevétel' : 'Költség' }}</span>
+                                    <strong class="{{ $isIncome ? 'amount-income' : 'amount-expense' }}">
+                                        {{ $isIncome ? '+' : '-' }}{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}
+                                    </strong>
                                     @if(($item->penznem->nev ?? null) !== 'HUF' && $item->osszeghuf)
-                                        <span class="converted-amount">{{ number_format($item->osszeghuf, 0, ',', ' ') }} Ft</span>
+                                        <span class="converted-amount {{ $isIncome ? 'amount-income' : 'amount-expense' }}">
+                                            {{ $isIncome ? '+' : '-' }}{{ number_format($item->osszeghuf, 0, ',', ' ') }} Ft
+                                        </span>
                                     @endif
                                 </td>
                                 <td>{{ $item->megjegyzes }}</td>
                                 <td>
-                                    <button class="delete-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">✏️</button>
+                                    <button class="delete-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ $item->tipus ?? 'koltseg' }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">✏️</button>
                                     <button class="delete-btn" onclick="deleteTranzakcio({{ $item->id }}, '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}')" title="Törlés">🗑️</button>
                                 </td>
                             </tr>
@@ -638,7 +674,7 @@
                     </table>
                 @else
                     <div class="no-data">
-                        <p>Még nincsenek költségeid. <button onclick="openModal()" style="background: none; border: none; color: #667eea; cursor: pointer; text-decoration: underline;">Hozzáadj egyet!</button></p>
+                        <p>Még nincsenek tranzakcióid. <button onclick="openModal()" style="background: none; border: none; color: #667eea; cursor: pointer; text-decoration: underline;">Hozzáadj egyet!</button></p>
                     </div>
                 @endif
             </div>
@@ -649,21 +685,19 @@
                     <h2 style="margin-top: 0;">Gyors Áttekintés</h2>
                     <div class="stats-summary">
                         <div class="stat-card">
-                            <div class="stat-card-label">Összes költség (forintban)</div>
-                            <div class="stat-card-value">{{ number_format($total, 0, ',', ' ') }} Ft</div>
+                            <div class="stat-card-label">Összes kiadás (forintban)</div>
+                            <div class="stat-card-value" style="color:#b00020;">{{ number_format($expenseTotal, 0, ',', ' ') }} Ft</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-card-label">Költségek száma</div>
-                            <div class="stat-card-value">{{ $tranzakciok->count() }}</div>
+                            <div class="stat-card-label">Összes bevétel (forintban)</div>
+                            <div class="stat-card-value" style="color:#1b8f3a;">{{ number_format($incomeTotal, 0, ',', ' ') }} Ft</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-card-label">Top kategória</div>
+                            <div class="stat-card-label">Egyenleg</div>
                             <div class="stat-card-value" style="font-size: 14px;">
-                                @if($byCategory && $byCategory->count() > 0)
-                                    {{ $byCategory[0]->name }}
-                                @else
-                                    -
-                                @endif
+                                <span style="color: {{ $balanceTotal >= 0 ? '#1b8f3a' : '#b00020' }};">
+                                    {{ number_format($balanceTotal, 0, ',', ' ') }} Ft
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -696,7 +730,7 @@
     <div id="koltsegModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Új Költség Hozzáadása</h2>
+            <h2 id="modalTitle">Új Tranzakció Hozzáadása</h2>
             
             @if($errors->any())
                 @foreach($errors->all() as $error)
@@ -708,6 +742,10 @@
             
             <form action="/koltseg/add" method="POST" id="koltsegForm">
                 @csrf
+                <select name="tipus" id="tipus_input" required>
+                    <option value="koltseg" {{ old('tipus', 'koltseg') === 'koltseg' ? 'selected' : '' }}>Költség</option>
+                    <option value="bevetel" {{ old('tipus') === 'bevetel' ? 'selected' : '' }}>Bevétel</option>
+                </select>
                 <!--Kategória-->
                 <div class="kategoria-input-wrapper" id="kategoria_wrapper">
                     <input type="text" id="kategoria_input" name="kategoria" placeholder="Kategória" value="{{ old('kategoria') }}" required
@@ -717,7 +755,6 @@
                             <div class="kategoria-item" onclick="selectKategoria('{{ $kat->nev }}')">{{ $kat->nev }}</div>
                         @endforeach
                     </div>
-                    <div class="field-help">Választhatsz az ajánlott kategóriák közül, vagy beírhatsz sajátot is.</div>
                 </div>
 
                 <input type="text" name="osszeg" placeholder="Összeg" value="{{ old('osszeg') }}" required>
@@ -734,7 +771,7 @@
                 
                 <input type="date" name="rogzites" value="{{ old('rogzites') }}" required>
                 <textarea name="megjegyzes" placeholder="Leírás (megjegyzés)">{{ old('megjegyzes') }}</textarea>
-                <button type="submit">Költség Hozzáadása</button>
+                <button type="submit">Tranzakció Hozzáadása</button>
             </form>
         </div>
     </div>
