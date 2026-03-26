@@ -444,6 +444,164 @@
             }
         }
     </style>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+        :root {
+            --ink: #112641;
+            --muted: #5a6b82;
+            --surface: rgba(255, 255, 255, 0.78);
+            --line: rgba(17, 38, 65, 0.14);
+            --accent: #ff5a36;
+            --accent-2: #00b8d9;
+            --income: #089451;
+            --expense: #bf1f3f;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Sora", "Segoe UI", sans-serif !important;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 12% 10%, rgba(255, 90, 54, 0.26), transparent 40%),
+                radial-gradient(circle at 90% 8%, rgba(0, 184, 217, 0.22), transparent 42%),
+                linear-gradient(130deg, #fef6e4, #e6f8ff 48%, #f7f8ff) !important;
+            min-height: 100vh;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.74) !important;
+            border-bottom: 1px solid var(--line);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 24px !important;
+        }
+        .header h1 { font-weight: 800; letter-spacing: .3px; }
+        .header h2 { color: var(--muted) !important; margin: 4px 0 0; }
+        .logout-btn {
+            border-radius: 14px !important;
+            background: linear-gradient(110deg, #12283d, #203d5d 55%, var(--accent-2)) !important;
+            box-shadow: 0 10px 20px rgba(17, 38, 65, 0.25);
+            transition: transform .2s ease;
+        }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .container { padding: 26px !important; }
+        .main-layout {
+            display: grid !important;
+            grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+            gap: 22px !important;
+        }
+        .add-btn {
+            border-radius: 14px !important;
+            background: linear-gradient(120deg, var(--accent), #ff7d51 52%, var(--accent-2)) !important;
+            box-shadow: 0 12px 20px rgba(255, 90, 54, 0.22);
+            font-weight: 700;
+            transition: transform .2s ease;
+        }
+        .add-btn:hover { transform: translateY(-2px); }
+        table {
+            background: var(--surface) !important;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 22px 48px rgba(17, 38, 65, 0.12);
+            backdrop-filter: blur(8px);
+        }
+        table th, table td { border-bottom: 1px solid rgba(17,38,65,0.08) !important; }
+        table th {
+            background: linear-gradient(120deg, rgba(17, 38, 65, 0.95), rgba(0, 184, 217, 0.85)) !important;
+            color: #fff !important;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+        table tr:nth-child(even) td { background: rgba(255,255,255,0.6); }
+        table tr:hover td { background: rgba(0,184,217,0.08) !important; }
+        .amount-cell strong, .stat-card-value { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+        .amount-expense { color: var(--expense) !important; }
+        .amount-income { color: var(--income) !important; }
+        .type-expense { background: rgba(191, 31, 63, 0.12) !important; color: #9e1530 !important; }
+        .type-income { background: rgba(8, 148, 81, 0.13) !important; color: #0b7b46 !important; }
+        .delete-btn {
+            background: rgba(17, 38, 65, 0.08) !important;
+            border: 1px solid rgba(17, 38, 65, 0.14) !important;
+            border-radius: 10px;
+            transition: transform .2s ease;
+        }
+        .delete-btn:hover { transform: translateY(-1px) scale(1.04) !important; background: rgba(0, 184, 217, 0.18) !important; }
+        .no-data {
+            border-radius: 16px !important;
+            border: 1px dashed rgba(17, 38, 65, 0.24);
+            background: rgba(255, 255, 255, 0.62) !important;
+            color: var(--muted) !important;
+        }
+        .stats-box {
+            background: var(--surface) !important;
+            border: 1px solid var(--line);
+            border-radius: 18px !important;
+            box-shadow: 0 22px 48px rgba(17, 38, 65, 0.12) !important;
+            top: 96px !important;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.86) !important;
+            border: 1px solid rgba(17,38,65,0.08);
+            border-radius: 12px !important;
+        }
+        .stats-table th {
+            background: rgba(17, 38, 65, 0.08) !important;
+            color: var(--ink) !important;
+            text-transform: none;
+            position: static;
+        }
+        .stat-link a {
+            color: var(--ink) !important;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255, 90, 54, 0.35);
+            text-decoration: none !important;
+        }
+        .modal {
+            background: rgba(7, 17, 30, 0.55) !important;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            border-radius: 20px !important;
+            border: 1px solid rgba(17, 38, 65, 0.14);
+            background: linear-gradient(165deg, rgba(255,255,255,0.95), rgba(236,248,255,0.95)) !important;
+            box-shadow: 0 28px 60px rgba(7, 17, 30, 0.35) !important;
+        }
+        .close-btn:hover { color: var(--accent) !important; transform: rotate(90deg); }
+        .modal form input, .modal form textarea, .modal form select, .kategoria-input {
+            border-radius: 12px !important;
+            border: 1px solid rgba(17, 38, 65, 0.16) !important;
+            background: rgba(255,255,255,0.94) !important;
+            font-family: "Sora", "Segoe UI", sans-serif !important;
+        }
+        .modal form input:focus, .modal form textarea:focus, .modal form select:focus, .kategoria-input:focus {
+            border-color: var(--accent-2) !important;
+            box-shadow: 0 0 0 4px rgba(0,184,217,0.2) !important;
+        }
+        .modal form button {
+            border-radius: 12px !important;
+            background: linear-gradient(120deg, var(--accent), #ff7d51 52%, var(--accent-2)) !important;
+            box-shadow: 0 12px 22px rgba(255, 90, 54, 0.28);
+        }
+        .kategoria-list {
+            border: 1px solid rgba(17, 38, 65, 0.14) !important;
+            border-top: none !important;
+            border-radius: 0 0 12px 12px !important;
+            box-shadow: 0 10px 20px rgba(17, 38, 65, 0.14) !important;
+        }
+        .kategoria-item:hover { background: rgba(0,184,217,0.1) !important; }
+        @media (max-width: 1024px) {
+            .main-layout { grid-template-columns: 1fr !important; }
+            .stats-box { position: static !important; }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 12px !important; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .header { padding: 14px !important; }
+        }
+    </style>
     <script>
         function openModal(tranzakcioId = null) {
             const modal = document.getElementById('koltsegModal');

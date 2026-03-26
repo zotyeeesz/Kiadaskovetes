@@ -21,6 +21,99 @@
 		.bar-inner { height: 100%; background: linear-gradient(90deg,#667eea,#5568d3); }
 		.small-muted { color: #666; font-size: 13px; }
 	</style>
+	<style>
+		@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+		:root {
+			--ink: #112641;
+			--muted: #5a6b82;
+			--surface: rgba(255,255,255,0.78);
+			--line: rgba(17,38,65,0.14);
+			--accent: #ff5a36;
+			--accent-2: #00b8d9;
+			--income: #089451;
+			--expense: #bf1f3f;
+		}
+		* { box-sizing: border-box; }
+		body {
+			font-family: "Sora", "Segoe UI", sans-serif !important;
+			color: var(--ink);
+			background:
+				radial-gradient(circle at 12% 10%, rgba(255, 90, 54, 0.25), transparent 40%),
+				radial-gradient(circle at 90% 8%, rgba(0, 184, 217, 0.22), transparent 42%),
+				linear-gradient(130deg, #fef6e4, #e6f8ff 48%, #f7f8ff) !important;
+		}
+		.header {
+			position: sticky;
+			top: 0;
+			z-index: 100;
+			background: rgba(255,255,255,0.74) !important;
+			border-bottom: 1px solid var(--line);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+		}
+		.header h1 { font-weight: 800; }
+		.header h2 { color: var(--muted) !important; }
+		.logout-btn {
+			border-radius: 12px !important;
+			background: linear-gradient(110deg, #12283d, #203d5d 55%, var(--accent-2)) !important;
+			box-shadow: 0 10px 18px rgba(17, 38, 65, 0.24);
+			font-weight: 700;
+			transition: transform .2s ease;
+		}
+		.logout-btn:hover { transform: translateY(-2px); }
+		.container { padding: 24px !important; }
+		.card {
+			background: var(--surface) !important;
+			border: 1px solid var(--line);
+			border-radius: 18px !important;
+			box-shadow: 0 20px 44px rgba(17, 38, 65, 0.12) !important;
+			backdrop-filter: blur(8px);
+		}
+		h2 { color: var(--ink) !important; }
+		.summary {
+			display: grid !important;
+			grid-template-columns: repeat(4, minmax(0,1fr));
+			gap: 14px !important;
+		}
+		.summary > div {
+			background: rgba(255,255,255,0.86);
+			border: 1px solid rgba(17,38,65,0.1);
+			border-radius: 12px;
+			padding: 10px 12px;
+		}
+		.summary .big {
+			font-size: 22px !important;
+			font-family: "JetBrains Mono", monospace;
+			font-variant-numeric: tabular-nums;
+		}
+		table {
+			border: 1px solid rgba(17,38,65,0.1);
+			border-radius: 12px;
+			overflow: hidden;
+		}
+		table th {
+			background: linear-gradient(120deg, rgba(17,38,65,0.96), rgba(0,184,217,0.84)) !important;
+			color: #fff !important;
+			font-size: 12px;
+			text-transform: uppercase;
+			letter-spacing: .5px;
+		}
+		table td { border-bottom: 1px solid rgba(17,38,65,0.08) !important; }
+		table tr:nth-child(even) td { background: rgba(255,255,255,0.6); }
+		table tr:hover td { background: rgba(0,184,217,0.08); }
+		.bar { background: rgba(17,38,65,0.12) !important; border-radius: 999px !important; }
+		.bar-inner { background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important; }
+		.small-muted { color: var(--muted) !important; }
+		@media (max-width: 900px) {
+			.summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+		}
+		@media (max-width: 640px) {
+			.header { flex-direction: column; align-items: flex-start; }
+			.container { padding: 12px !important; }
+			.summary { grid-template-columns: 1fr; }
+			table { display: block; overflow-x: auto; white-space: nowrap; }
+		}
+	</style>
 </head>
 <body>
 	<div class="header">
@@ -29,7 +122,7 @@
 			<h2>Statisztika - {{ $year ?? now()->year }}</h2>
 		</div>
 		<div>
-			<a href="/fooldal" class="logout-btn" style="background:#4CAF50; margin-right:10px;">Vissza</a>
+			<a href="/fooldal" class="logout-btn" style="margin-right:10px;">Vissza</a>
 			<a href="/logout" class="logout-btn">Kijelentkezés</a>
 		</div>
 	</div>

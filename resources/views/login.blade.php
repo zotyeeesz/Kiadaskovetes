@@ -132,6 +132,94 @@
             .register-link { font-size: 13px; }
         }
     </style>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+        :root {
+            --ink: #112641;
+            --muted: #53657d;
+            --card: rgba(255, 255, 255, 0.78);
+            --line: rgba(17, 38, 65, 0.14);
+            --accent: #ff5a36;
+            --accent-2: #00b8d9;
+            --ok: #0a9a57;
+            --bad: #bf1f3f;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Sora", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 90, 54, 0.30), transparent 42%),
+                radial-gradient(circle at 82% 12%, rgba(0, 184, 217, 0.24), transparent 40%),
+                linear-gradient(135deg, #fdf2f8, #ecfeff 52%, #fff7ed) !important;
+            color: var(--ink);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-container {
+            border-radius: 24px !important;
+            background: var(--card) !important;
+            border: 1px solid var(--line);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 28px 60px rgba(255, 90, 54, 0.18) !important;
+        }
+        h1 {
+            font-size: clamp(1.6rem, 3vw, 2rem);
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            color: var(--ink) !important;
+        }
+        form input {
+            border-radius: 14px !important;
+            border: 1px solid var(--line) !important;
+            background: rgba(255,255,255,0.9);
+            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+        form input:focus {
+            border-color: var(--accent-2) !important;
+            box-shadow: 0 0 0 4px rgba(0,184,217,0.18) !important;
+            transform: translateY(-1px);
+        }
+        form button {
+            border-radius: 14px !important;
+            background: linear-gradient(110deg, var(--accent), #ff7f50 54%, var(--accent-2)) !important;
+            box-shadow: 0 12px 24px rgba(255, 90, 54, 0.28);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        form button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(255, 90, 54, 0.34); }
+        .error, .success {
+            border-radius: 12px !important;
+            border-left: 0 !important;
+            border: 1px solid transparent;
+        }
+        .error {
+            color: var(--bad) !important;
+            background: rgba(191, 31, 63, 0.10) !important;
+            border-color: rgba(191, 31, 63, 0.24) !important;
+        }
+        .success {
+            color: var(--ok) !important;
+            background: rgba(10, 154, 87, 0.11) !important;
+            border-color: rgba(10, 154, 87, 0.24) !important;
+        }
+        .resend-box {
+            border-radius: 14px !important;
+            border: 1px solid var(--line) !important;
+            background: rgba(255,255,255,0.74) !important;
+        }
+        .resend-box p, .register-link { color: var(--muted) !important; }
+        .register-link a {
+            color: var(--ink) !important;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255, 90, 54, 0.45);
+            text-decoration: none !important;
+        }
+        @media (max-width: 600px) {
+            .login-container { border-radius: 20px !important; }
+            .resend-box form { flex-direction: column; align-items: stretch; }
+            .resend-box button { width: 100% !important; }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
