@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
@@ -499,6 +499,49 @@
             transition: transform .2s ease;
         }
         .add-btn:hover { transform: translateY(-2px); }
+        .transactions-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+        .transactions-title-row h2 {
+            margin: 0;
+        }
+        .month-inline-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.74);
+        }
+        .month-inline-current {
+            min-width: 130px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--ink);
+            font-size: 14px;
+        }
+        .month-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(17, 38, 65, 0.16);
+            text-decoration: none;
+            color: var(--ink);
+            background: #fff;
+            font-weight: 700;
+        }
+        .month-nav-btn.disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
         table {
             background: var(--surface) !important;
             border: 1px solid var(--line);
@@ -598,6 +641,10 @@
         }
         @media (max-width: 768px) {
             .container { padding: 12px !important; }
+            .transactions-title-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
             table { display: block; overflow-x: auto; white-space: nowrap; }
             .header { padding: 14px !important; }
         }
@@ -794,8 +841,28 @@
         <div class="main-layout">
             <!-- Bal oldal: Költségek listája (3/5) -->
             <div class="left-column">
-                @if($tranzakciok->count() > 0)
-                    <h2>Tranzakcióid</h2>
+                @if($availableMonths->count() > 0)
+                    @php
+                        $monthValues = $availableMonths->values();
+                        $currentMonthIndex = $monthValues->search($selectedMonth);
+                        $prevMonth = ($currentMonthIndex !== false && $currentMonthIndex < ($monthValues->count() - 1))
+                            ? $monthValues[$currentMonthIndex + 1]
+                            : null;
+                        $nextMonth = ($currentMonthIndex !== false && $currentMonthIndex > 0)
+                            ? $monthValues[$currentMonthIndex - 1]
+                            : null;
+                    @endphp
+
+                    <div class="transactions-title-row">
+                        <h2>Tranzakcióid - {{ $selectedMonthLabel }}</h2>
+                        <div class="month-inline-controls">
+                            <a class="month-nav-btn {{ $prevMonth ? '' : 'disabled' }}" href="{{ $prevMonth ? '/fooldal?honap='.$prevMonth : '#' }}" aria-label="Előző hónap">‹</a>
+                            <span class="month-inline-current">{{ $selectedMonthLabel }}</span>
+                            <a class="month-nav-btn {{ $nextMonth ? '' : 'disabled' }}" href="{{ $nextMonth ? '/fooldal?honap='.$nextMonth : '#' }}" aria-label="Következő hónap">›</a>
+                        </div>
+                    </div>
+
+                    @if($tranzakciokAtvalasztva->count() > 0)
                     <table>
                         <tr>
                             <th>Dátum</th>
@@ -830,6 +897,11 @@
                             </tr>
                         @endforeach
                     </table>
+                    @else
+                    <div class="no-data">
+                        <p>Ebben a hónapban még nincs tranzakció.</p>
+                    </div>
+                    @endif
                 @else
                     <div class="no-data">
                         <p>Még nincsenek tranzakcióid. <button onclick="openModal()" style="background: none; border: none; color: #667eea; cursor: pointer; text-decoration: underline;">Hozzáadj egyet!</button></p>

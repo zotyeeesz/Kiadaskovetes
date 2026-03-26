@@ -271,7 +271,10 @@ Route::get('/fooldal', function () {
 
     $exchangeRateService = new ExchangeRateService();
 
-    $tranzakciok = Tranzakcio::with('kategoria','penznem')->where('felhasznaloid', $userId)->get();
+    $tranzakciok = Tranzakcio::with('kategoria', 'penznem')
+        ->where('felhasznaloid', $userId)
+        ->orderByDesc('rogzites')
+        ->get();
     
     // Az árfolyamok lekérése az összes tranzakcióhoz - try-catch-al kezelve, ha a tábla még nem létezik
     $arfolyamok = collect();
@@ -284,6 +287,43 @@ Route::get('/fooldal', function () {
     
     // Az összegek átváltása forintra az ExchangeRateService segítségével
     $tranzakciokAtvalasztva = $exchangeRateService->convertAllToHUF($tranzakciok);
+
+    $availableMonths = $tranzakciokAtvalasztva
+        ->map(function ($t) {
+            try {
+                return Carbon::parse($t->rogzites)->format('Y-m');
+            } catch (\Throwable $e) {
+                return null;
+            }
+        })
+        ->filter()
+        ->unique()
+        ->sortDesc()
+        ->values();
+
+    $currentMonth = Carbon::now()->format('Y-m');
+    $selectedMonth = request('honap');
+
+    if (!preg_match('/^\d{4}-\d{2}$/', (string) $selectedMonth) || !$availableMonths->contains($selectedMonth)) {
+        $selectedMonth = $availableMonths->contains($currentMonth)
+            ? $currentMonth
+            : ($availableMonths->first() ?? $currentMonth);
+    }
+
+    $tranzakciokAtvalasztva = $tranzakciokAtvalasztva
+        ->filter(function ($t) use ($selectedMonth) {
+            try {
+                return Carbon::parse($t->rogzites)->format('Y-m') === $selectedMonth;
+            } catch (\Throwable $e) {
+                return false;
+            }
+        })
+        ->sortByDesc('rogzites')
+        ->values();
+
+    $selectedMonthLabel = Carbon::createFromFormat('Y-m', $selectedMonth)
+        ->locale('hu')
+        ->translatedFormat('Y. F');
     
     $kategoriak = getSuggestedCategories($userId);
     $penznemek = penznem::orderBy('nev')->get();
@@ -298,12 +338,26 @@ Route::get('/fooldal', function () {
     $balanceTotal = $incomeTotal - $expenseTotal;
     
     // Kategóriánkénti összegzés az ExchangeRateService segítségével
-    $expenseTransactions = $tranzakciok
+    $expenseTransactions = $tranzakciokAtvalasztva
         ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
         ->values();
     $byCategory = $exchangeRateService->getCategoryTotalsInHUF($expenseTransactions)->take(5);
 
-    return view('fooldal', compact('tranzakciokAtvalasztva','kategoriak','penznemek','expenseTotal','incomeTotal','balanceTotal','byCategory', 'arfolyamok', 'tranzakciok', 'hasTipusColumn'));
+    return view('fooldal', compact(
+        'tranzakciokAtvalasztva',
+        'kategoriak',
+        'penznemek',
+        'expenseTotal',
+        'incomeTotal',
+        'balanceTotal',
+        'byCategory',
+        'arfolyamok',
+        'tranzakciok',
+        'hasTipusColumn',
+        'availableMonths',
+        'selectedMonth',
+        'selectedMonthLabel'
+    ));
 });
 
 Route::get('/teszt', function () {
