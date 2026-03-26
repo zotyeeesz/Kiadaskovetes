@@ -102,8 +102,8 @@
             --muted: #53657d;
             --card: rgba(255, 255, 255, 0.78);
             --line: rgba(17, 38, 65, 0.14);
-            --accent: #ff5a36;
-            --accent-2: #00b8d9;
+            --accent: #1f3b57;
+            --accent-soft: #2b4a67;
             --ok: #0a9a57;
             --bad: #bf1f3f;
         }
@@ -130,7 +130,8 @@
             font-size: clamp(1.6rem, 3vw, 2rem);
             font-weight: 800;
             letter-spacing: 0.4px;
-            color: var(--ink) !important;
+            color: var(--accent) !important;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
         }
         form input {
             border-radius: 14px !important;
@@ -139,17 +140,21 @@
             transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
         }
         form input:focus {
-            border-color: var(--accent-2) !important;
-            box-shadow: 0 0 0 4px rgba(0,184,217,0.18) !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 4px rgba(31,59,87,0.14) !important;
             transform: translateY(-1px);
         }
         form button {
             border-radius: 14px !important;
-            background: linear-gradient(110deg, var(--accent), #ff7f50 54%, var(--accent-2)) !important;
-            box-shadow: 0 12px 24px rgba(255, 90, 54, 0.28);
+            background: var(--accent) !important;
+            box-shadow: 0 12px 24px rgba(17, 38, 65, 0.16);
             transition: transform .2s ease, box-shadow .2s ease;
         }
-        form button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(255, 90, 54, 0.34); }
+        form button:hover {
+            transform: translateY(-2px);
+            background: var(--accent-soft) !important;
+            box-shadow: 0 14px 28px rgba(17, 38, 65, 0.2);
+        }
         .info, .error, .success {
             border-radius: 12px !important;
             border-left: 0 !important;

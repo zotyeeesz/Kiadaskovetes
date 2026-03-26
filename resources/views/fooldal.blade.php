@@ -451,8 +451,8 @@
             --muted: #5a6b82;
             --surface: rgba(255, 255, 255, 0.78);
             --line: rgba(17, 38, 65, 0.14);
-            --accent: #ff5a36;
-            --accent-2: #00b8d9;
+            --accent: #1f3b57;
+            --accent-soft: #2b4a67;
             --income: #089451;
             --expense: #bf1f3f;
         }
@@ -476,15 +476,24 @@
             -webkit-backdrop-filter: blur(12px);
             padding: 16px 24px !important;
         }
-        .header h1 { font-weight: 800; letter-spacing: .3px; }
+        .header h1 {
+            font-weight: 800;
+            letter-spacing: .3px;
+            color: var(--accent);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
         .header h2 { color: var(--muted) !important; margin: 4px 0 0; }
         .logout-btn {
             border-radius: 14px !important;
-            background: linear-gradient(110deg, #12283d, #203d5d 55%, var(--accent-2)) !important;
-            box-shadow: 0 10px 20px rgba(17, 38, 65, 0.25);
-            transition: transform .2s ease;
+            background: var(--accent) !important;
+            box-shadow: 0 10px 20px rgba(17, 38, 65, 0.16);
+            transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
         }
-        .logout-btn:hover { transform: translateY(-2px); }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            background: var(--accent-soft) !important;
+            box-shadow: 0 12px 22px rgba(17, 38, 65, 0.2);
+        }
         .container { padding: 26px !important; }
         .main-layout {
             display: grid !important;
@@ -493,12 +502,16 @@
         }
         .add-btn {
             border-radius: 14px !important;
-            background: linear-gradient(120deg, var(--accent), #ff7d51 52%, var(--accent-2)) !important;
-            box-shadow: 0 12px 20px rgba(255, 90, 54, 0.22);
+            background: var(--accent) !important;
+            box-shadow: 0 12px 20px rgba(17, 38, 65, 0.14);
             font-weight: 700;
-            transition: transform .2s ease;
+            transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
         }
-        .add-btn:hover { transform: translateY(-2px); }
+        .add-btn:hover {
+            transform: translateY(-2px);
+            background: var(--accent-soft) !important;
+            box-shadow: 0 14px 24px rgba(17, 38, 65, 0.18);
+        }
         .transactions-title-row {
             display: flex;
             justify-content: space-between;
@@ -508,6 +521,32 @@
         }
         .transactions-title-row h2 {
             margin: 0;
+            font-size: 1.12rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--ink);
+        }
+        .section-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--ink);
+        }
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(17, 38, 65, 0.1);
+        }
+        .section-heading::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(17, 38, 65, 0.18), rgba(17, 38, 65, 0));
         }
         .month-inline-controls {
             display: flex;
@@ -552,11 +591,12 @@
         }
         table th, table td { border-bottom: 1px solid rgba(17,38,65,0.08) !important; }
         table th {
-            background: linear-gradient(120deg, rgba(17, 38, 65, 0.95), rgba(0, 184, 217, 0.85)) !important;
-            color: #fff !important;
-            font-size: 12px;
+            background: rgba(17, 38, 65, 0.06) !important;
+            color: rgba(17, 38, 65, 0.82) !important;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .6px;
+            letter-spacing: .12em;
         }
         table tr:nth-child(even) td { background: rgba(255,255,255,0.6); }
         table tr:hover td { background: rgba(0,184,217,0.08) !important; }
@@ -591,9 +631,11 @@
             border-radius: 12px !important;
         }
         .stats-table th {
-            background: rgba(17, 38, 65, 0.08) !important;
-            color: var(--ink) !important;
-            text-transform: none;
+            background: rgba(17, 38, 65, 0.05) !important;
+            color: rgba(17, 38, 65, 0.74) !important;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            font-size: 10px;
             position: static;
         }
         .stat-link a {
@@ -620,13 +662,13 @@
             font-family: "Sora", "Segoe UI", sans-serif !important;
         }
         .modal form input:focus, .modal form textarea:focus, .modal form select:focus, .kategoria-input:focus {
-            border-color: var(--accent-2) !important;
-            box-shadow: 0 0 0 4px rgba(0,184,217,0.2) !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 4px rgba(31, 59, 87, 0.14) !important;
         }
         .modal form button {
             border-radius: 12px !important;
-            background: linear-gradient(120deg, var(--accent), #ff7d51 52%, var(--accent-2)) !important;
-            box-shadow: 0 12px 22px rgba(255, 90, 54, 0.28);
+            background: var(--accent) !important;
+            box-shadow: 0 12px 22px rgba(17, 38, 65, 0.16);
         }
         .kategoria-list {
             border: 1px solid rgba(17, 38, 65, 0.14) !important;
@@ -912,7 +954,9 @@
             <!-- Jobb oldal: Statisztika (2/5) -->
             <div class="right-column">
                 <div class="stats-box">
-                    <h2 style="margin-top: 0;">Gyors Áttekintés</h2>
+                    <div class="section-heading">
+                        <h2 class="section-title">Gyors Áttekintés</h2>
+                    </div>
                     <div class="stats-summary">
                         <div class="stat-card">
                             <div class="stat-card-label">Összes kiadás (forintban)</div>
@@ -960,7 +1004,9 @@
     <div id="koltsegModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Új Tranzakció Hozzáadása</h2>
+            <div class="section-heading">
+                <h2 id="modalTitle" class="section-title">Új Tranzakció Hozzáadása</h2>
+            </div>
             
             @if($errors->any())
                 @foreach($errors->all() as $error)
@@ -999,7 +1045,7 @@
                     </div>
                 </div>
                 
-                <input type="date" name="rogzites" value="{{ old('rogzites') }}" required>
+                <input type="date" name="rogzites" value="{{ old('rogzites', now()->toDateString()) }}" required>
                 <textarea name="megjegyzes" placeholder="Leírás (megjegyzés)">{{ old('megjegyzes') }}</textarea>
                 <button type="submit">Tranzakció Hozzáadása</button>
             </form>

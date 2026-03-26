@@ -18,68 +18,96 @@ class StatController extends Controller
         $userId = session('user')->id;
         $exchangeRateService = new ExchangeRateService();
 
-        $tranzakciok = Tranzakcio::with('penznem', 'kategoria')->where('felhasznaloid', $userId)->get();
-        $expenseTotal = 0;
-        $incomeTotal = 0;
+        $allTranzakciok = Tranzakcio::with('penznem', 'kategoria')
+            ->where('felhasznaloid', $userId)
+            ->orderByDesc('rogzites')
+            ->get();
 
-        foreach ($tranzakciok as $t) {
-            $rate = $exchangeRateService->getRate($t->penznem->nev ?? 'HUF');
-            $hufAmount = $t->osszeg * ($rate ?? 1);
-            $type = $t->tipus ?? 'koltseg';
+        $allConverted = $exchangeRateService->convertAllToHUF($allTranzakciok);
 
-            if ($type === 'bevetel') {
-                $incomeTotal += $hufAmount;
-            } else {
-                $expenseTotal += $hufAmount;
-            }
+        $availableMonths = $allConverted
+            ->map(function ($t) {
+                try {
+                    return Carbon::parse($t->rogzites)->format('Y-m');
+                } catch (\Throwable $e) {
+                    return null;
+                }
+            })
+            ->filter()
+            ->unique()
+            ->sortDesc()
+            ->values();
+
+        $currentMonth = Carbon::now()->format('Y-m');
+        $selectedMonth = $request->query('honap');
+
+        if (!preg_match('/^\d{4}-\d{2}$/', (string) $selectedMonth) || !$availableMonths->contains($selectedMonth)) {
+            $selectedMonth = $availableMonths->contains($currentMonth)
+                ? $currentMonth
+                : ($availableMonths->first() ?? $currentMonth);
         }
+
+        $tranzakciok = $allConverted
+            ->filter(function ($t) use ($selectedMonth) {
+                try {
+                    return Carbon::parse($t->rogzites)->format('Y-m') === $selectedMonth;
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            })
+            ->values();
+
+        $expenseTotal = $tranzakciok
+            ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+            ->sum('osszeghuf');
+        $incomeTotal = $tranzakciok
+            ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+            ->sum('osszeghuf');
         $balanceTotal = $incomeTotal - $expenseTotal;
         $total = $expenseTotal;
 
-        // Havi bontás az aktuális évre (a dátum mező neve: 'rogzites')
-        $year = Carbon::now()->year;
-        $monthlyData = Tranzakcio::with('penznem')
-            ->where('felhasznaloid', $userId)
-            ->whereYear('rogzites', $year)
-            ->get();
-
-        $monthly = collect();
-        foreach ($monthlyData->groupBy(fn($item) => Carbon::parse($item->rogzites)->format('m')) as $month => $items) {
-            $monthIncome = 0;
-            $monthExpense = 0;
-
-            foreach ($items as $item) {
-                $rate = $exchangeRateService->getRate($item->penznem->nev ?? '');
-                $hufAmount = $item->osszeg * ($rate ?? 1);
-                $type = $item->tipus ?? 'koltseg';
-
-                if ($type === 'bevetel') {
-                    $monthIncome += $hufAmount;
-                } else {
-                    $monthExpense += $hufAmount;
+        $monthly = $allConverted
+            ->groupBy(function ($item) {
+                try {
+                    return Carbon::parse($item->rogzites)->format('Y-m');
+                } catch (\Throwable $e) {
+                    return null;
                 }
-            }
+            })
+            ->filter(function ($items, $month) {
+                return !empty($month);
+            })
+            ->map(function ($items, $month) {
+                $income = $items
+                    ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+                    ->sum('osszeghuf');
+                $expense = $items
+                    ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+                    ->sum('osszeghuf');
 
-            $monthly->push((object)[
-                'month' => $month,
-                'income' => $monthIncome,
-                'expense' => $monthExpense,
-                'total' => $monthIncome - $monthExpense
-            ]);
-        }
-        $monthly = $monthly->sortBy('month');
+                return (object) [
+                    'month_key' => $month,
+                    'income' => $income,
+                    'expense' => $expense,
+                    'total' => $income - $expense,
+                ];
+            })
+            ->sortByDesc('month_key')
+            ->values();
 
-        // Kategória szerinti kiadás bontás (forintban)
+        $selectedMonthLabel = Carbon::createFromFormat('Y-m', $selectedMonth)
+            ->locale('hu')
+            ->translatedFormat('Y. F');
+        $year = Carbon::createFromFormat('Y-m', $selectedMonth)->year;
+
         $expenseTransactions = $tranzakciok->where('tipus', 'koltseg')->values();
         $byCategory = $exchangeRateService->getCategoryTotalsInHUF($expenseTransactions);
 
-        // Százalékok számítása
         $byCategory = $byCategory->map(function ($item) use ($expenseTotal) {
             $item->percent = $expenseTotal ? round($item->total / $expenseTotal * 100, 2) : 0;
             return $item;
         });
 
-        // Összeg pénznemenként (HUF-ban), bevétel/kiadás bontásban
         $byCurrencyData = $tranzakciok->groupBy('penznemid');
         $byCurrency = collect();
         foreach ($byCurrencyData as $penznemId => $items) {
@@ -88,7 +116,7 @@ class StatController extends Controller
             $currencyExpense = 0;
 
             foreach ($items as $item) {
-                $rate = $exchangeRateService->getRate($penznem->nev);
+                $rate = $exchangeRateService->getRate($penznem->nev ?? 'HUF');
                 $hufAmount = $item->osszeg * ($rate ?? 1);
                 $type = $item->tipus ?? 'koltseg';
 
@@ -98,16 +126,28 @@ class StatController extends Controller
                     $currencyExpense += $hufAmount;
                 }
             }
-             
-            $byCurrency->push((object)[
+
+            $byCurrency->push((object) [
                 'currency' => $penznem->nev,
                 'income' => $currencyIncome,
                 'expense' => $currencyExpense,
-                'total' => $currencyIncome - $currencyExpense
+                'total' => $currencyIncome - $currencyExpense,
             ]);
         }
         $byCurrency = $byCurrency->sortByDesc('total');
 
-        return view('statisztika', compact('total', 'monthly', 'byCategory', 'byCurrency', 'year', 'incomeTotal', 'expenseTotal', 'balanceTotal'));
+        return view('statisztika', compact(
+            'total',
+            'monthly',
+            'byCategory',
+            'byCurrency',
+            'year',
+            'incomeTotal',
+            'expenseTotal',
+            'balanceTotal',
+            'availableMonths',
+            'selectedMonth',
+            'selectedMonthLabel'
+        ));
     }
 }

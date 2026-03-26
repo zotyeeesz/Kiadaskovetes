@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="hu">
 <head>
 	<meta charset="UTF-8">
@@ -28,8 +28,8 @@
 			--muted: #5a6b82;
 			--surface: rgba(255,255,255,0.78);
 			--line: rgba(17,38,65,0.14);
-			--accent: #ff5a36;
-			--accent-2: #00b8d9;
+			--accent: #1f3b57;
+			--accent-soft: #2b4a67;
 			--income: #089451;
 			--expense: #bf1f3f;
 		}
@@ -51,16 +51,24 @@
 			backdrop-filter: blur(12px);
 			-webkit-backdrop-filter: blur(12px);
 		}
-		.header h1 { font-weight: 800; }
+		.header h1 {
+			font-weight: 800;
+			color: var(--accent);
+			text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+		}
 		.header h2 { color: var(--muted) !important; }
 		.logout-btn {
 			border-radius: 12px !important;
-			background: linear-gradient(110deg, #12283d, #203d5d 55%, var(--accent-2)) !important;
-			box-shadow: 0 10px 18px rgba(17, 38, 65, 0.24);
+			background: var(--accent) !important;
+			box-shadow: 0 10px 18px rgba(17, 38, 65, 0.16);
 			font-weight: 700;
-			transition: transform .2s ease;
+			transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
 		}
-		.logout-btn:hover { transform: translateY(-2px); }
+		.logout-btn:hover {
+			transform: translateY(-2px);
+			background: var(--accent-soft) !important;
+			box-shadow: 0 12px 22px rgba(17, 38, 65, 0.2);
+		}
 		.container { padding: 24px !important; }
 		.card {
 			background: var(--surface) !important;
@@ -70,6 +78,27 @@
 			backdrop-filter: blur(8px);
 		}
 		h2 { color: var(--ink) !important; }
+		.section-title {
+			margin: 0;
+			font-size: 1rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			color: var(--ink);
+		}
+		.section-heading {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 16px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid rgba(17, 38, 65, 0.1);
+		}
+		.section-heading::after {
+			content: "";
+			flex: 1;
+			height: 1px;
+			background: linear-gradient(90deg, rgba(17, 38, 65, 0.18), rgba(17, 38, 65, 0));
+		}
 		.summary {
 			display: grid !important;
 			grid-template-columns: repeat(4, minmax(0,1fr));
@@ -92,18 +121,57 @@
 			overflow: hidden;
 		}
 		table th {
-			background: linear-gradient(120deg, rgba(17,38,65,0.96), rgba(0,184,217,0.84)) !important;
-			color: #fff !important;
-			font-size: 12px;
+			background: rgba(17,38,65,0.06) !important;
+			color: rgba(17, 38, 65, 0.82) !important;
+			font-size: 11px;
+			font-weight: 700;
 			text-transform: uppercase;
-			letter-spacing: .5px;
+			letter-spacing: .12em;
 		}
 		table td { border-bottom: 1px solid rgba(17,38,65,0.08) !important; }
 		table tr:nth-child(even) td { background: rgba(255,255,255,0.6); }
 		table tr:hover td { background: rgba(0,184,217,0.08); }
 		.bar { background: rgba(17,38,65,0.12) !important; border-radius: 999px !important; }
-		.bar-inner { background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important; }
+		.bar-inner { background: var(--accent) !important; }
 		.small-muted { color: var(--muted) !important; }
+		.month-switch {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+		}
+		.month-switch .label { font-weight: 700; }
+		.month-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 10px;
+			border: 1px solid var(--line);
+			border-radius: 12px;
+			background: rgba(255,255,255,0.8);
+		}
+		.month-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 32px;
+			height: 32px;
+			border-radius: 8px;
+			border: 1px solid rgba(17,38,65,0.16);
+			text-decoration: none;
+			color: var(--ink);
+			background: #fff;
+			font-weight: 700;
+		}
+		.month-btn.disabled {
+			opacity: .35;
+			pointer-events: none;
+		}
+		.month-current {
+			min-width: 150px;
+			text-align: center;
+			font-weight: 700;
+		}
 		@media (max-width: 900px) {
 			.summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
 		}
@@ -128,6 +196,28 @@
 	</div>
 
 	<div class="container">
+		@php
+			$monthValues = ($availableMonths ?? collect())->values();
+			$currentMonthIndex = $monthValues->search($selectedMonth ?? null);
+			$prevMonth = ($currentMonthIndex !== false && $currentMonthIndex < ($monthValues->count() - 1))
+				? $monthValues[$currentMonthIndex + 1]
+				: null;
+			$nextMonth = ($currentMonthIndex !== false && $currentMonthIndex > 0)
+				? $monthValues[$currentMonthIndex - 1]
+				: null;
+		@endphp
+
+		<div class="card">
+			<div class="month-switch">
+				<div class="label">Havi n?zet</div>
+				<div class="month-controls">
+					<a class="month-btn {{ $prevMonth ? '' : 'disabled' }}" href="{{ $prevMonth ? '/statisztika?honap=' . $prevMonth : '#' }}" aria-label="El?z? h?nap">&lsaquo;</a>
+					<div class="month-current">{{ $selectedMonthLabel ?? (now()->locale('hu')->translatedFormat('Y. F')) }}</div>
+					<a class="month-btn {{ $nextMonth ? '' : 'disabled' }}" href="{{ $nextMonth ? '/statisztika?honap=' . $nextMonth : '#' }}" aria-label="K?vetkez? h?nap">&rsaquo;</a>
+				</div>
+			</div>
+		</div>
+
 		<div class="card">
 			<div class="summary">
 				<div>
@@ -146,26 +236,27 @@
 				</div>
 				<div style="margin-left: auto; text-align: right;">
 					<div class="small-muted">Időszak</div>
-					<div>{{ $year ?? now()->year }}</div>
+					<div>{{ $selectedMonthLabel ?? ($year ?? now()->year) }}</div>
 				</div>
 			</div>
 		</div>
 
 		<div class="card">
-			<h2>Havi bontás</h2>
+			<div class="section-heading">
+				<h2 class="section-title">Havi bontás</h2>
+			</div>
 			@if($monthly && $monthly->count() > 0)
 				<table>
 					<thead>
-						<tr><th>Hónap</th><th>Kiadás</th><th>Bevétel</th><th>Egyenleg</th><th></th></tr>
+							<tr><th>Hónap</th><th>Kiadás</th><th>Bevétel</th><th>Egyenleg</th></tr>
 					</thead>
 					<tbody>
 						@foreach($monthly as $m)
 							<tr>
-								<td>{{ \Carbon\Carbon::createFromFormat('!m', $m->month)->locale(app()->getLocale())->isoFormat('MMMM') }}</td>
+								<td>{{ \Carbon\Carbon::createFromFormat('Y-m', $m->month_key)->locale('hu')->translatedFormat('Y. F') }}</td>
 								<td><strong style="color:#b00020;">{{ number_format($m->expense, 0, ',', ' ') }} Ft</strong></td>
 								<td><strong style="color:#1b8f3a;">{{ number_format($m->income, 0, ',', ' ') }} Ft</strong></td>
 								<td><strong style="color: {{ $m->total >= 0 ? '#1b8f3a' : '#b00020' }};">{{ number_format($m->total, 0, ',', ' ') }} Ft</strong></td>
-								<td class="small-muted">{{ number_format(($m->expense / max($expenseTotal,1)) * 100, 2) }} % kiadás</td>
 							</tr>
 						@endforeach
 					</tbody>
@@ -176,7 +267,9 @@
 		</div>
 
 		<div class="card">
-			<h2>Kategória szerinti kiadás bontás</h2>
+			<div class="section-heading">
+				<h2 class="section-title">Kategória szerinti kiadás bontás</h2>
+			</div>
 			@if($byCategory && $byCategory->count() > 0)
 				<table>
 					<thead>
@@ -203,10 +296,12 @@
 		</div>
 
 		<div class="card">
-			<h2>Pénznemek szerinti bontás</h2>
+			<div class="section-heading">
+				<h2 class="section-title">Pénznemek szerinti bontás</h2>
+			</div>
 			@if($byCurrency && $byCurrency->count() > 0)
 				<table>
-					<thead><tr><th>Pénznem</th><th>Kiadás</th><th>Bevétel</th><th>Egyenleg</th></tr></thead>
+					<thead><tr><th>Pénznem</th><th>Kiadás</th><th>Bev?tel</th><th>Egyenleg</th></tr></thead>
 					<tbody>
 						@foreach($byCurrency as $c)
 							<tr>
