@@ -967,7 +967,7 @@
                             <div class="stat-card-value" style="color:#1b8f3a;">{{ number_format($incomeTotal, 0, ',', ' ') }} Ft</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-card-label">Egyenleg</div>
+                            <div class="stat-card-label">Cashlow</div>
                             <div class="stat-card-value" style="font-size: 14px;">
                                 <span style="color: {{ $balanceTotal >= 0 ? '#1b8f3a' : '#b00020' }};">
                                     {{ number_format($balanceTotal, 0, ',', ' ') }} Ft
@@ -976,16 +976,40 @@
                         </div>
                     </div>
 
-                    @if($byCategory && $byCategory->count() > 0)
+                    @if($byCurrency && $byCurrency->count() > 0)
                         <table class="stats-table">
                             <thead>
-                                <tr><th>Top kategóriák</th><th>Összeg</th></tr>
+                                <tr>
+                                    <th>Pénznem</th>
+                                    <th>Kiadás</th>
+                                    <th>Bevétel</th>
+                                    <th>Cashflow</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                @foreach($byCategory as $item)
+                                @foreach($byCurrency as $item)
                                     <tr>
-                                        <td>{{ $item->name }}</td>
-                                        <td style="text-align:right;"><strong>{{ number_format($item->total, 0, ',', ' ') }} Ft</strong></td>
+                                        <td><strong>{{ $item->currency }}</strong></td>
+                                        <td style="text-align:right; color:#b00020;">
+                                            <strong>{{ number_format($item->native_expense, 2, ',', ' ') }} {{ $item->currency }}</strong>
+                                            @if($item->currency !== 'HUF')
+                                                <div style="font-size:12px; color:#666;">{{ number_format($item->expense, 0, ',', ' ') }} Ft</div>
+                                            @endif
+                                        </td>
+                                        <td style="text-align:right; color:#1b8f3a;">
+                                            <strong>{{ number_format($item->native_income, 2, ',', ' ') }} {{ $item->currency }}</strong>
+                                            @if($item->currency !== 'HUF')
+                                                <div style="font-size:12px; color:#666;">{{ number_format($item->income, 0, ',', ' ') }} Ft</div>
+                                            @endif
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <strong style="color: {{ $item->total >= 0 ? '#1b8f3a' : '#b00020' }};">
+                                                {{ number_format($item->native_total, 2, ',', ' ') }} {{ $item->currency }}
+                                            </strong>
+                                            @if($item->currency !== 'HUF')
+                                                <div style="font-size:12px; color:#666;">{{ number_format($item->total, 0, ',', ' ') }} Ft</div>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

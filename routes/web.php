@@ -338,10 +338,39 @@ Route::get('/fooldal', function () {
     $balanceTotal = $incomeTotal - $expenseTotal;
     
     // Kategóriánkénti összegzés az ExchangeRateService segítségével
-    $expenseTransactions = $tranzakciokAtvalasztva
-        ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+    $byCurrency = $tranzakciokAtvalasztva
+        ->groupBy(function ($item) {
+            return $item->penznem->nev ?? 'HUF';
+        })
+        ->map(function ($items, $currency) {
+            $nativeIncome = $items
+                ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+                ->sum('osszeg');
+
+            $nativeExpense = $items
+                ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+                ->sum('osszeg');
+
+            $income = $items
+                ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+                ->sum('osszeghuf');
+
+            $expense = $items
+                ->filter(fn($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+                ->sum('osszeghuf');
+
+            return (object) [
+                'currency' => $currency,
+                'native_income' => $nativeIncome,
+                'native_expense' => $nativeExpense,
+                'native_total' => $nativeIncome - $nativeExpense,
+                'income' => $income,
+                'expense' => $expense,
+                'total' => $income - $expense,
+            ];
+        })
+        ->sortByDesc('total')
         ->values();
-    $byCategory = $exchangeRateService->getCategoryTotalsInHUF($expenseTransactions)->take(5);
 
     return view('fooldal', compact(
         'tranzakciokAtvalasztva',
@@ -350,7 +379,7 @@ Route::get('/fooldal', function () {
         'expenseTotal',
         'incomeTotal',
         'balanceTotal',
-        'byCategory',
+        'byCurrency',
         'arfolyamok',
         'tranzakciok',
         'hasTipusColumn',
