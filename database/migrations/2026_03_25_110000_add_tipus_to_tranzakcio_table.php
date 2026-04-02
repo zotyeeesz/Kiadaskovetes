@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tranzakcio', function (Blueprint $table) {
-            $table->string('tipus', 20)->default('koltseg');
-        });
+        if (!Schema::hasColumn('tranzakcio', 'tipus')) {
+            Schema::table('tranzakcio', function (Blueprint $table) {
+                $table->string('tipus', 20)->default('koltseg');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tranzakcio', function (Blueprint $table) {
-            $table->dropColumn('tipus');
-        });
+        if (Schema::hasColumn('tranzakcio', 'tipus')) {
+            Schema::table('tranzakcio', function (Blueprint $table) {
+                $table->dropColumn('tipus');
+            });
+        }
     }
 };

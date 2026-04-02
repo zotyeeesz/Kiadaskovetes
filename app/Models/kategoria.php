@@ -12,6 +12,7 @@ class kategoria extends Model
     protected $fillable = [
         'felhasznaloid',
         'nev',
+        'tipus',
     ];
 
     public function felhasznalo()

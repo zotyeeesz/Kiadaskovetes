@@ -38,7 +38,7 @@
         }
         .container {
             padding: 30px;
-            max-width: 1400px;
+            max-width: 1520px;
             margin: 0 auto;
         }
         .main-layout {
@@ -258,7 +258,7 @@
             resize: vertical;
             min-height: 80px;
         }
-        .modal form button {
+        .modal form button[type="submit"] {
             width: 100%;
             padding: 12px;
             background-color: #667eea;
@@ -269,7 +269,7 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .modal form button:hover {
+        .modal form button[type="submit"]:hover {
             background-color: #5568d3;
         }
         .kategoria-input-wrapper {
@@ -293,6 +293,59 @@
             margin-top: 6px;
             font-size: 12px;
             color: #777;
+        }
+        .field-inline-message {
+            margin-top: 0;
+            font-size: 12px;
+            color: #667085;
+            min-height: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        .field-inline-message.error {
+            color: #b42318;
+            margin-top: 8px;
+            min-height: 18px;
+            height: auto;
+        }
+        .field-inline-message.success {
+            color: #027a48;
+            margin-top: 8px;
+            min-height: 18px;
+            height: auto;
+        }
+        .kategoria-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .kategoria-item-label {
+            flex: 1;
+            min-width: 0;
+        }
+        .kategoria-item-delete {
+            width: auto !important;
+            min-width: 0 !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: #b42318 !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            cursor: pointer;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+        .kategoria-item-delete:hover {
+            background: transparent !important;
+            text-decoration: underline;
         }
         .kategoria-list {
             position: absolute;
@@ -470,67 +523,136 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
             background: rgba(255,255,255,0.74) !important;
             border-bottom: 1px solid var(--line);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 16px 24px !important;
+            padding: 10px 24px !important;
         }
         .header h1 {
+            margin: 0;
+            font-size: 1.95rem;
             font-weight: 800;
             letter-spacing: .3px;
             color: var(--accent);
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
         }
-        .header h2 { color: var(--muted) !important; margin: 4px 0 0; }
         .logout-btn {
-            border-radius: 14px !important;
-            background: var(--accent) !important;
-            box-shadow: 0 10px 20px rgba(17, 38, 65, 0.16);
-            transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            border: 1px solid rgba(17, 38, 65, 0.14);
+            border-radius: 12px !important;
+            background: rgba(255,255,255,0.74) !important;
+            color: var(--accent) !important;
+            box-shadow: none;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            text-decoration: none;
+            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
         }
         .logout-btn:hover {
-            transform: translateY(-2px);
-            background: var(--accent-soft) !important;
-            box-shadow: 0 12px 22px rgba(17, 38, 65, 0.2);
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.92) !important;
+            border-color: rgba(17, 38, 65, 0.22);
+            box-shadow: 0 8px 18px rgba(17, 38, 65, 0.08);
         }
-        .container { padding: 26px !important; }
+        .container {
+            padding: 32px 34px 40px !important;
+            max-width: 1560px;
+        }
+        .page-intro {
+            margin: 0 0 14px;
+            color: var(--ink);
+            font-size: 1.38rem;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
         .main-layout {
             display: grid !important;
-            grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
-            gap: 22px !important;
+            grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr);
+            gap: 30px !important;
+        }
+        .left-column,
+        .right-column {
+            min-width: 0;
+        }
+        .right-column {
+            align-self: start;
+        }
+        .page-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 30px;
+            padding: 0;
         }
         .add-btn {
-            border-radius: 14px !important;
-            background: var(--accent) !important;
-            box-shadow: 0 12px 20px rgba(17, 38, 65, 0.14);
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 0 18px;
+            border: 1px solid rgba(17, 38, 65, 0.14);
+            border-radius: 12px !important;
+            background: rgba(255,255,255,0.78) !important;
+            box-shadow: none;
+            font-size: 0.94rem;
             font-weight: 700;
-            transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+            letter-spacing: 0.01em;
+            color: var(--accent) !important;
+            margin-bottom: 0;
+            transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
         }
         .add-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.94) !important;
+            border-color: rgba(17, 38, 65, 0.22);
+            box-shadow: 0 8px 18px rgba(17, 38, 65, 0.08);
+        }
+        .add-btn.primary-btn {
+            background: var(--accent) !important;
+            color: #ffffff !important;
+            border-color: rgba(17, 38, 65, 0.02);
+            box-shadow: 0 10px 22px rgba(17, 38, 65, 0.12);
+        }
+        .add-btn.primary-btn:hover {
             background: var(--accent-soft) !important;
-            box-shadow: 0 14px 24px rgba(17, 38, 65, 0.18);
+            box-shadow: 0 12px 24px rgba(17, 38, 65, 0.16);
+        }
+        .add-btn.secondary-btn {
+            background: rgba(255,255,255,0.72) !important;
+            color: var(--accent) !important;
         }
         .transactions-title-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 14px;
-            margin-bottom: 12px;
+            gap: 18px;
+            margin-bottom: 20px;
         }
         .transactions-title-row h2 {
             margin: 0;
-            font-size: 1.12rem;
+            font-size: 1.18rem;
             font-weight: 700;
             letter-spacing: 0.02em;
             color: var(--ink);
         }
         .section-title {
             margin: 0;
-            font-size: 1rem;
+            font-size: 1.02rem;
             font-weight: 700;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.02em;
             color: var(--ink);
         }
         .section-heading {
@@ -552,13 +674,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 10px;
-            border-radius: 12px;
+            padding: 10px 12px;
+            border-radius: 14px;
             border: 1px solid var(--line);
             background: rgba(255, 255, 255, 0.74);
         }
         .month-inline-current {
-            min-width: 130px;
+            min-width: 146px;
             text-align: center;
             font-weight: 700;
             color: var(--ink);
@@ -605,13 +727,39 @@
         .amount-income { color: var(--income) !important; }
         .type-expense { background: rgba(191, 31, 63, 0.12) !important; color: #9e1530 !important; }
         .type-income { background: rgba(8, 148, 81, 0.13) !important; color: #0b7b46 !important; }
-        .delete-btn {
-            background: rgba(17, 38, 65, 0.08) !important;
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .action-btn {
+            min-height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
             border: 1px solid rgba(17, 38, 65, 0.14) !important;
             border-radius: 10px;
-            transition: transform .2s ease;
+            background: rgba(17, 38, 65, 0.08) !important;
+            color: rgba(17, 38, 65, 0.9) !important;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            white-space: nowrap;
+            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
         }
-        .delete-btn:hover { transform: translateY(-1px) scale(1.04) !important; background: rgba(0, 184, 217, 0.18) !important; }
+        .action-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(0, 184, 217, 0.12) !important;
+        }
+        .action-btn-danger {
+            color: #9e1530 !important;
+            border-color: rgba(166, 69, 52, 0.18) !important;
+            background: rgba(166, 69, 52, 0.08) !important;
+        }
+        .action-btn-danger:hover {
+            background: rgba(166, 69, 52, 0.14) !important;
+        }
         .no-data {
             border-radius: 16px !important;
             border: 1px dashed rgba(17, 38, 65, 0.24);
@@ -621,14 +769,37 @@
         .stats-box {
             background: var(--surface) !important;
             border: 1px solid var(--line);
-            border-radius: 18px !important;
+            border-radius: 22px !important;
             box-shadow: 0 22px 48px rgba(17, 38, 65, 0.12) !important;
             top: 96px !important;
+            padding: 24px !important;
+        }
+        .stats-summary {
+            gap: 14px;
+            margin-bottom: 22px;
         }
         .stat-card {
             background: rgba(255,255,255,0.86) !important;
             border: 1px solid rgba(17,38,65,0.08);
-            border-radius: 12px !important;
+            border-radius: 16px !important;
+            padding: 18px !important;
+        }
+        .stat-card-label {
+            margin-bottom: 8px;
+            line-height: 1.45;
+        }
+        .stat-card-value {
+            font-size: 1.2rem;
+            line-height: 1.3;
+        }
+        table th, table td {
+            padding: 14px 12px;
+        }
+        .stats-table {
+            margin-top: 14px;
+        }
+        .stats-table th, .stats-table td {
+            padding: 10px 10px;
         }
         .stats-table th {
             background: rgba(17, 38, 65, 0.05) !important;
@@ -654,6 +825,78 @@
             background: linear-gradient(165deg, rgba(255,255,255,0.95), rgba(236,248,255,0.95)) !important;
             box-shadow: 0 28px 60px rgba(7, 17, 30, 0.35) !important;
         }
+        .confirm-modal-content {
+            width: min(420px, calc(100% - 32px));
+            padding: 24px;
+        }
+        .modal .section-heading {
+            margin-bottom: 14px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .modal .section-heading::after {
+            display: none;
+        }
+        .confirm-meta {
+            display: grid;
+            gap: 8px;
+            margin: 0 0 18px;
+            padding: 14px;
+            border: 1px solid rgba(17, 38, 65, 0.1);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.74);
+        }
+        .confirm-meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+        }
+        .confirm-meta-label {
+            color: rgba(17, 38, 65, 0.6);
+            font-weight: 700;
+        }
+        .confirm-meta-value {
+            color: rgba(17, 38, 65, 0.92);
+            font-weight: 700;
+            text-align: right;
+        }
+        .confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .confirm-btn {
+            min-width: 112px;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(17, 38, 65, 0.14);
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
+        }
+        .confirm-btn:hover {
+            transform: translateY(-1px);
+        }
+        .confirm-btn-secondary {
+            background: rgba(255,255,255,0.94);
+            color: rgba(17, 38, 65, 0.86);
+        }
+        .confirm-btn-secondary:hover {
+            background: rgba(17, 38, 65, 0.05);
+        }
+        .confirm-btn-danger {
+            background: rgba(166, 69, 52, 0.1);
+            border-color: rgba(166, 69, 52, 0.22);
+            color: #9e1530;
+        }
+        .confirm-btn-danger:hover {
+            background: rgba(166, 69, 52, 0.16);
+        }
         .close-btn:hover { color: var(--accent) !important; transform: rotate(90deg); }
         .modal form input, .modal form textarea, .modal form select, .kategoria-input {
             border-radius: 12px !important;
@@ -665,7 +908,250 @@
             border-color: var(--accent) !important;
             box-shadow: 0 0 0 4px rgba(31, 59, 87, 0.14) !important;
         }
-        .modal form button {
+        .type-toggle {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+            padding: 6px;
+            border: 1px solid rgba(17, 38, 65, 0.12);
+            border-radius: 14px;
+            background: rgba(247, 250, 253, 0.92);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.88);
+        }
+        .type-toggle-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+        .type-toggle-option {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 14px;
+            border: 1px solid transparent !important;
+            border-radius: 10px;
+            background: transparent !important;
+            color: rgba(17, 38, 65, 0.74) !important;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            box-shadow: none !important;
+            transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+        }
+        .type-toggle-option:hover {
+            background: rgba(17, 38, 65, 0.05) !important;
+            color: rgba(17, 38, 65, 0.92) !important;
+        }
+        .type-toggle-option.active {
+            background: #ffffff !important;
+            border-color: rgba(31, 59, 87, 0.18) !important;
+            color: rgba(17, 38, 65, 0.96) !important;
+            box-shadow: 0 8px 16px rgba(17, 38, 65, 0.08) !important;
+        }
+        .type-toggle-option[data-value="koltseg"].active {
+            color: #a64534 !important;
+            border-color: rgba(166, 69, 52, 0.2) !important;
+            background: rgba(166, 69, 52, 0.06) !important;
+        }
+        .type-toggle-option[data-value="bevetel"].active {
+            color: #2d5f42 !important;
+            border-color: rgba(45, 95, 66, 0.2) !important;
+            background: rgba(45, 95, 66, 0.08) !important;
+        }
+        .date-field {
+            display: grid;
+            gap: 6px;
+            margin: 6px 0 2px;
+            position: relative;
+        }
+        .date-picker-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+        .date-picker-trigger {
+            width: 100%;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 0 14px;
+            border: 1px solid rgba(17, 38, 65, 0.14) !important;
+            border-radius: 14px !important;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,250,253,0.96)) !important;
+            color: rgba(17, 38, 65, 0.92);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: .01em;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.92), 0 8px 18px rgba(17, 38, 65, 0.05);
+            text-align: left;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .date-picker.open .date-picker-trigger,
+        .date-picker-trigger:hover,
+        .date-picker-trigger:focus-visible {
+            border-color: rgba(31, 59, 87, 0.32) !important;
+            box-shadow: 0 0 0 4px rgba(31, 59, 87, 0.12), 0 10px 22px rgba(17, 38, 65, 0.08) !important;
+            outline: none;
+        }
+        .date-picker-trigger-value {
+            color: rgba(17, 38, 65, 0.92);
+            font-weight: 600;
+            letter-spacing: .01em;
+        }
+        .date-picker-trigger-icon {
+            position: relative;
+            flex-shrink: 0;
+            width: 18px;
+            height: 16px;
+            border: 1.5px solid rgba(17, 38, 65, 0.45);
+            border-top-width: 5px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.84);
+        }
+        .date-picker-trigger-icon::before {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 4px;
+            width: 6px;
+            height: 1.5px;
+            background: rgba(17, 38, 65, 0.3);
+            box-shadow: 0 4px 0 rgba(17, 38, 65, 0.18);
+        }
+        .date-picker-popover {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            width: min(286px, 100%);
+            padding: 12px;
+            border: 1px solid rgba(17, 38, 65, 0.12);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.98);
+            box-shadow: 0 18px 40px rgba(17, 38, 65, 0.14);
+            display: none;
+            z-index: 35;
+            max-height: min(296px, calc(100vh - 32px));
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .date-picker.open .date-picker-popover {
+            display: block;
+        }
+        .date-picker.open-upward .date-picker-popover {
+            top: auto;
+            bottom: calc(100% + 10px);
+        }
+        .date-picker-header,
+        .date-picker-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .date-picker-header {
+            margin-bottom: 10px;
+        }
+        .date-picker-month {
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(17, 38, 65, 0.92);
+            text-transform: capitalize;
+        }
+        .date-picker-nav,
+        .date-picker-action {
+            border: 1px solid rgba(17, 38, 65, 0.12) !important;
+            background: #fff !important;
+            color: rgba(17, 38, 65, 0.88) !important;
+            box-shadow: none !important;
+        }
+        .date-picker-nav {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .date-picker-weekdays,
+        .date-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 3px;
+        }
+        .date-picker-weekdays {
+            margin-bottom: 6px;
+        }
+        .date-picker-weekday {
+            text-align: center;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #7a8899;
+            padding: 3px 0;
+        }
+        .date-picker-day {
+            min-height: 30px;
+            border: 1px solid transparent !important;
+            border-radius: 8px;
+            background: transparent !important;
+            color: rgba(17, 38, 65, 0.92) !important;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: none !important;
+        }
+        .date-picker-day:hover {
+            background: rgba(17, 38, 65, 0.05) !important;
+        }
+        .date-picker-day.is-outside {
+            color: #b0bac6 !important;
+        }
+        .date-picker-day.is-today {
+            border-color: rgba(31, 59, 87, 0.18) !important;
+            color: var(--accent) !important;
+        }
+        .date-picker-day.is-selected {
+            background: rgba(31, 59, 87, 0.1) !important;
+            border-color: rgba(31, 59, 87, 0.22) !important;
+            color: rgba(17, 38, 65, 1) !important;
+        }
+        .date-picker-actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(17, 38, 65, 0.08);
+        }
+        .date-picker-action {
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .date-picker-action-primary {
+            background: rgba(31, 59, 87, 0.08) !important;
+            border-color: rgba(31, 59, 87, 0.18) !important;
+        }
+        .date-picker-nav:hover,
+        .date-picker-action:hover {
+            background: rgba(17, 38, 65, 0.05) !important;
+        }
+        .date-picker-action-primary:hover {
+            background: rgba(31, 59, 87, 0.14) !important;
+        }
+        @media (max-width: 480px) {
+            .date-picker-popover {
+                width: 100%;
+            }
+        }
+        .modal form button[type="submit"] {
             border-radius: 12px !important;
             background: var(--accent) !important;
             box-shadow: 0 12px 22px rgba(17, 38, 65, 0.16);
@@ -677,21 +1163,445 @@
             box-shadow: 0 10px 20px rgba(17, 38, 65, 0.14) !important;
         }
         .kategoria-item:hover { background: rgba(0,184,217,0.1) !important; }
+        .kategoria-item-delete,
+        .kategoria-item-delete:hover {
+            width: auto !important;
+            min-width: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            color: #b42318 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
         @media (max-width: 1024px) {
             .main-layout { grid-template-columns: 1fr !important; }
             .stats-box { position: static !important; }
+            .container { padding: 24px !important; }
         }
         @media (max-width: 768px) {
             .container { padding: 12px !important; }
+            .page-intro {
+                margin-bottom: 12px;
+                font-size: 1.12rem;
+            }
+            .page-actions {
+                gap: 10px;
+                margin-bottom: 24px;
+            }
+            .add-btn {
+                width: 100%;
+            }
             .transactions-title-row {
                 flex-direction: column;
                 align-items: flex-start;
             }
+            .month-inline-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
             table { display: block; overflow-x: auto; white-space: nowrap; }
-            .header { padding: 14px !important; }
+            .header {
+                padding: 12px 14px !important;
+            }
+            .header h1 {
+                font-size: 1.45rem;
+            }
         }
     </style>
     <script>
+        const calendarState = {
+            visibleMonth: null,
+        };
+        const deleteState = {
+            id: null,
+        };
+
+        function parseDateString(value) {
+            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return null;
+            }
+
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateForDisplay(value) {
+            const date = parseDateString(value);
+            if (!date) {
+                return 'Válassz dátumot';
+            }
+
+            return new Intl.DateTimeFormat('hu-HU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }).format(date);
+        }
+
+        function getDateInput() {
+            return document.getElementById('rogzites_input');
+        }
+
+        @php
+            $koltsegKategoriakJs = $koltsegKategoriak->map(function ($kat) {
+                return [
+                    'id' => $kat->id,
+                    'nev' => $kat->nev,
+                    'owned' => (bool) $kat->felhasznaloid,
+                ];
+            })->values()->all();
+
+            $bevetelKategoriakJs = $bevetelKategoriak->map(function ($kat) {
+                return [
+                    'id' => $kat->id,
+                    'nev' => $kat->nev,
+                    'owned' => (bool) $kat->felhasznaloid,
+                ];
+            })->values()->all();
+        @endphp
+        const categoryOptions = {
+            koltseg: @json($koltsegKategoriakJs),
+            bevetel: @json($bevetelKategoriakJs),
+        };
+
+        let categorySavePromise = null;
+
+        function getActiveKategoriak() {
+            const tipusInput = document.getElementById('tipus_input');
+            const tipus = tipusInput && tipusInput.value === 'bevetel' ? 'bevetel' : 'koltseg';
+
+            return categoryOptions[tipus] || [];
+        }
+
+        function getActiveTipus() {
+            const tipusInput = document.getElementById('tipus_input');
+            return tipusInput && tipusInput.value === 'bevetel' ? 'bevetel' : 'koltseg';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function setCategoryMessage(message = '', type = '') {
+            const messageBox = document.getElementById('kategoria_message');
+
+            if (!messageBox) {
+                return;
+            }
+
+            messageBox.textContent = message;
+            messageBox.className = `field-inline-message${type ? ` ${type}` : ''}`;
+        }
+
+        function renderKategoriak(filterText = '', forceShow = false) {
+            const list = document.getElementById('kategoria_list');
+
+            if (!list) {
+                return;
+            }
+
+            const normalizedFilter = filterText.toLowerCase();
+            const matches = getActiveKategoriak().filter((item) => item.nev.toLowerCase().includes(normalizedFilter));
+
+            list.innerHTML = matches
+                .map((item) => {
+                    const escapedName = String(item.nev).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                    const deleteButton = item.owned
+                        ? `<button type="button" class="kategoria-item-delete" onclick="deleteCustomCategory(event, ${item.id}, '${escapedName}')">Törlés</button>`
+                        : '';
+
+                    return `<div class="kategoria-item" onclick="selectKategoria('${escapedName}')"><span class="kategoria-item-label">${escapeHtml(item.nev)}</span>${deleteButton}</div>`;
+                })
+                .join('');
+
+            list.classList.toggle('show', matches.length > 0 && (forceShow || normalizedFilter.length > 0));
+        }
+
+        function setTipus(value) {
+            ensureCategorySaved({ showMessage: false });
+
+            const input = document.getElementById('tipus_input');
+            const options = document.querySelectorAll('.type-toggle-option');
+            const normalizedValue = value === 'bevetel' ? 'bevetel' : 'koltseg';
+
+            if (input) {
+                input.value = normalizedValue;
+            }
+
+            options.forEach((option) => {
+                const isActive = option.dataset.value === normalizedValue;
+                option.classList.toggle('active', isActive);
+                option.setAttribute('aria-pressed', String(isActive));
+            });
+
+            const categoryInput = document.getElementById('kategoria_input');
+            setCategoryMessage('');
+            renderKategoriak(categoryInput ? categoryInput.value : '');
+        }
+
+        function categoryExists(name, tipus = getActiveTipus()) {
+            const normalizedName = String(name || '').trim().toLowerCase();
+
+            return (categoryOptions[tipus] || []).some((item) => item.nev.trim().toLowerCase() === normalizedName);
+        }
+
+        async function ensureCategorySaved(options = {}) {
+            const categoryInput = document.getElementById('kategoria_input');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const tipus = getActiveTipus();
+            const categoryName = categoryInput ? categoryInput.value.trim() : '';
+            const showMessage = options.showMessage !== false;
+
+            if (!categoryName || categoryExists(categoryName, tipus)) {
+                return true;
+            }
+
+            if (!csrfToken) {
+                if (showMessage) {
+                    setCategoryMessage('A mentés most nem elérhető.', 'error');
+                }
+                return false;
+            }
+
+            if (categorySavePromise) {
+                return categorySavePromise;
+            }
+
+            categorySavePromise = (async () => {
+                try {
+                    const response = await fetch('/kategoria/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            kategoria_nev: categoryName,
+                            tipus,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'A kategória mentése nem sikerült.');
+                    }
+
+                    if (!categoryExists(data.kategoria_nev, tipus)) {
+                        categoryOptions[tipus] = [
+                            ...(categoryOptions[tipus] || []),
+                            {
+                                id: data.kategoriaid,
+                                nev: data.kategoria_nev,
+                                owned: Boolean(data.owned),
+                            },
+                        ].sort((a, b) => a.nev.localeCompare(b.nev, 'hu', { sensitivity: 'base' }));
+                    }
+
+                    if (categoryInput) {
+                        categoryInput.value = data.kategoria_nev;
+                    }
+
+                    renderKategoriak(data.kategoria_nev, true);
+                    if (showMessage) {
+                        setCategoryMessage('Saját kategória elmentve.', 'success');
+                    }
+
+                    return true;
+                } catch (error) {
+                    if (showMessage) {
+                        setCategoryMessage(error.message || 'A kategória mentése nem sikerült.', 'error');
+                    }
+                    return false;
+                } finally {
+                    categorySavePromise = null;
+                }
+            })();
+
+            return categorySavePromise;
+        }
+
+        function setDateValue(value) {
+            const input = getDateInput();
+            const display = document.getElementById('datePickerValue');
+
+            if (!input || !display) {
+                return;
+            }
+
+            input.value = value || '';
+            display.textContent = formatDateForDisplay(input.value);
+
+            const parsed = parseDateString(input.value);
+            calendarState.visibleMonth = parsed
+                ? new Date(parsed.getFullYear(), parsed.getMonth(), 1)
+                : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+            renderDatePicker();
+        }
+
+        function toggleDatePicker() {
+            const wrapper = document.getElementById('date_picker');
+            const trigger = document.getElementById('datePickerTrigger');
+            const popover = document.getElementById('datePickerPopover');
+
+            if (!wrapper || !trigger || !popover) {
+                return;
+            }
+
+            const shouldOpen = !wrapper.classList.contains('open');
+            wrapper.classList.toggle('open', shouldOpen);
+            trigger.setAttribute('aria-expanded', String(shouldOpen));
+            popover.setAttribute('aria-hidden', String(!shouldOpen));
+
+            if (shouldOpen) {
+                renderDatePicker();
+                updateDatePickerPosition();
+            }
+        }
+
+        function closeDatePicker() {
+            const wrapper = document.getElementById('date_picker');
+            const trigger = document.getElementById('datePickerTrigger');
+            const popover = document.getElementById('datePickerPopover');
+
+            if (wrapper) {
+                wrapper.classList.remove('open');
+                wrapper.classList.remove('open-upward');
+            }
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+            if (popover) {
+                popover.setAttribute('aria-hidden', 'true');
+                popover.style.maxHeight = '';
+            }
+        }
+
+        function updateDatePickerPosition() {
+            const wrapper = document.getElementById('date_picker');
+            const trigger = document.getElementById('datePickerTrigger');
+            const popover = document.getElementById('datePickerPopover');
+
+            if (!wrapper || !trigger || !popover || !wrapper.classList.contains('open')) {
+                return;
+            }
+
+            wrapper.classList.remove('open-upward');
+            popover.style.maxHeight = '';
+
+            const triggerRect = trigger.getBoundingClientRect();
+            const popoverRect = popover.getBoundingClientRect();
+            const viewportPadding = 16;
+            const gap = 10;
+            const spaceBelow = window.innerHeight - triggerRect.bottom - viewportPadding;
+            const spaceAbove = triggerRect.top - viewportPadding;
+            const shouldOpenUpward = popoverRect.height > spaceBelow && spaceAbove > spaceBelow;
+            const availableSpace = shouldOpenUpward ? spaceAbove - gap : spaceBelow - gap;
+
+            wrapper.classList.toggle('open-upward', shouldOpenUpward);
+            popover.style.maxHeight = `${Math.max(160, Math.floor(availableSpace))}px`;
+        }
+
+        function changeCalendarMonth(offset) {
+            if (!calendarState.visibleMonth) {
+                const today = new Date();
+                calendarState.visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            }
+
+            calendarState.visibleMonth = new Date(
+                calendarState.visibleMonth.getFullYear(),
+                calendarState.visibleMonth.getMonth() + offset,
+                1
+            );
+
+            renderDatePicker();
+        }
+
+        function selectDate(value) {
+            setDateValue(value);
+            closeDatePicker();
+        }
+
+        function jumpToToday() {
+            setDateValue(formatDateForInput(new Date()));
+            closeDatePicker();
+        }
+
+        function renderDatePicker() {
+            const month = document.getElementById('datePickerMonth');
+            const grid = document.getElementById('datePickerGrid');
+            const input = getDateInput();
+
+            if (!month || !grid) {
+                return;
+            }
+
+            if (!calendarState.visibleMonth) {
+                const parsed = parseDateString(input?.value || '');
+                const source = parsed || new Date();
+                calendarState.visibleMonth = new Date(source.getFullYear(), source.getMonth(), 1);
+            }
+
+            const visible = calendarState.visibleMonth;
+            month.textContent = new Intl.DateTimeFormat('hu-HU', {
+                year: 'numeric',
+                month: 'long',
+            }).format(visible);
+
+            const firstDay = new Date(visible.getFullYear(), visible.getMonth(), 1);
+            const gridStart = new Date(firstDay);
+            const startOffset = (firstDay.getDay() + 6) % 7;
+            gridStart.setDate(firstDay.getDate() - startOffset);
+
+            const selectedValue = input?.value || '';
+            const todayValue = formatDateForInput(new Date());
+            const activeMonth = visible.getMonth();
+
+            let markup = '';
+
+            for (let index = 0; index < 42; index += 1) {
+                const current = new Date(gridStart);
+                current.setDate(gridStart.getDate() + index);
+
+                const value = formatDateForInput(current);
+                const classes = ['date-picker-day'];
+
+                if (current.getMonth() !== activeMonth) {
+                    classes.push('is-outside');
+                }
+                if (value === todayValue) {
+                    classes.push('is-today');
+                }
+                if (value === selectedValue) {
+                    classes.push('is-selected');
+                }
+
+                markup += `<button type="button" class="${classes.join(' ')}" onclick="selectDate('${value}')" aria-label="${formatDateForDisplay(value)}">${current.getDate()}</button>`;
+            }
+
+            grid.innerHTML = markup;
+
+            if (document.getElementById('date_picker')?.classList.contains('open')) {
+                updateDatePickerPosition();
+            }
+        }
+
         function openModal(tranzakcioId = null) {
             const modal = document.getElementById('koltsegModal');
             const form = document.getElementById('koltsegForm');
@@ -733,9 +1643,9 @@
                 // Form mezők ürítése
                 document.getElementById('kategoria_input').value = '';
                 document.getElementById('penznem_input').value = '';
-                document.getElementById('tipus_input').value = 'koltseg';
+                setTipus('koltseg');
                 document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = '';
-                document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = '';
+                setDateValue('{{ old('rogzites', now()->toDateString()) }}');
                 document.getElementById('koltsegForm').querySelector('textarea[name="megjegyzes"]').value = '';
             }
         }
@@ -749,44 +1659,146 @@
             
             document.getElementById('penznem_input').value = penznem;
             document.getElementById('penznem_list').classList.remove('show');
-            document.getElementById('tipus_input').value = tipus || 'koltseg';
+            setTipus(tipus || 'koltseg');
             
             document.getElementById('koltsegForm').querySelector('input[name="osszeg"]').value = osszeg.replace(/\s/g, '').replace(',', '.');
-            document.getElementById('koltsegForm').querySelector('input[name="rogzites"]').value = rogzites;
+            setDateValue(rogzites);
             document.getElementById('koltsegForm').querySelector('textarea[name="megjegyzes"]').value = megjegyzes || '';
         }
         
         function closeModal() {
             document.getElementById('koltsegModal').classList.remove('show');
+            closeDatePicker();
         }
+
+        function openDeleteConfirm(tranzakcioId, categoria, osszeg) {
+            const modal = document.getElementById('deleteConfirmModal');
+            const category = document.getElementById('deleteConfirmCategory');
+            const amount = document.getElementById('deleteConfirmAmount');
+
+            deleteState.id = tranzakcioId;
+
+            if (category) {
+                category.textContent = categoria || '-';
+            }
+            if (amount) {
+                amount.textContent = osszeg || '-';
+            }
+            if (modal) {
+                modal.classList.add('show');
+            }
+        }
+
+        function closeDeleteConfirm() {
+            const modal = document.getElementById('deleteConfirmModal');
+
+            deleteState.id = null;
+
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        function confirmDeleteTranzakcio() {
+            if (!deleteState.id) {
+                closeDeleteConfirm();
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/koltseg/delete/${deleteState.id}`;
+                
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = '_token';
+                input.value = csrfToken;
+                form.appendChild(input);
+            }
+                
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(methodInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         @if($errors->any())
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('koltsegModal').classList.add('show');
         });
         @endif
-        function filterKategoriak() {
-            const input = document.getElementById('kategoria_input').value.toLowerCase();
-            const list = document.getElementById('kategoria_list');
-            const items = list.querySelectorAll('.kategoria-item');
-            
-            if (input.length > 0) {
-                list.classList.add('show');
-            } else {
-                list.classList.remove('show');
+        document.addEventListener('DOMContentLoaded', function() {
+            setTipus('{{ old('tipus', 'koltseg') }}');
+            setDateValue('{{ old('rogzites', now()->toDateString()) }}');
+            renderKategoriak(@json(old('kategoria', '')));
+
+            const form = document.getElementById('koltsegForm');
+            if (form) {
+                form.addEventListener('submit', async function(event) {
+                    const saved = await ensureCategorySaved();
+
+                    if (!saved) {
+                        event.preventDefault();
+                    }
+                });
             }
-            
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (text.includes(input)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+        });
+        function filterKategoriak(forceShow = false) {
+            const input = document.getElementById('kategoria_input').value;
+            renderKategoriak(input, forceShow);
+            setCategoryMessage('');
         }
+
         function selectKategoria(nev) {
             document.getElementById('kategoria_input').value = nev;
             document.getElementById('kategoria_list').classList.remove('show');
+            setCategoryMessage('');
+        }
+
+        async function deleteCustomCategory(event, id, nev) {
+            event.stopPropagation();
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const tipus = getActiveTipus();
+
+            if (!csrfToken) {
+                setCategoryMessage('A törlés most nem elérhető.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/kategoria/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'A kategória törlése nem sikerült.');
+                }
+
+                categoryOptions[tipus] = (categoryOptions[tipus] || []).filter((item) => item.id !== id);
+
+                const categoryInput = document.getElementById('kategoria_input');
+                if (categoryInput && categoryInput.value.trim().toLowerCase() === String(nev).trim().toLowerCase()) {
+                    categoryInput.value = '';
+                }
+
+                renderKategoriak(categoryInput ? categoryInput.value : '', true);
+                setCategoryMessage('Saját kategória törölve.', 'success');
+            } catch (error) {
+                setCategoryMessage(error.message || 'A kategória törlése nem sikerült.', 'error');
+            }
         }
         
         document.addEventListener('click', function(event) {
@@ -800,8 +1812,13 @@
         
         window.onclick = function(event) {
             const modal = document.getElementById('koltsegModal');
+            const deleteModal = document.getElementById('deleteConfirmModal');
+
             if (event.target == modal) {
-                modal.classList.remove('show');
+                closeModal();
+            }
+            if (event.target == deleteModal) {
+                closeDeleteConfirm();
             }
         }
         document.addEventListener('click', function(event) {
@@ -811,6 +1828,20 @@
             if (wrapper && !wrapper.contains(event.target)) {
                 list.classList.remove('show');
             }
+
+            const datePicker = document.getElementById('date_picker');
+            if (datePicker && !datePicker.contains(event.target)) {
+                closeDatePicker();
+            }
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDatePicker();
+                closeDeleteConfirm();
+            }
+        });
+        window.addEventListener('resize', function() {
+            updateDatePickerPosition();
         });
         function filterPenznemek() {
             const input = document.getElementById('penznem_input').value.toUpperCase();
@@ -838,46 +1869,22 @@
         }
         
         function deleteTranzakcio(tranzakcioId, categoria, osszeg) {
-            if (confirm(`Biztosan törlöd ezt a tranzakciót?\n\nKategória: ${categoria}\nÖsszeg: ${osszeg}`)) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/koltseg/delete/${tranzakcioId}`;
-                
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (csrfToken) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = '_token';
-                    input.value = csrfToken;
-                    form.appendChild(input);
-                }
-                
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'DELETE';
-                form.appendChild(methodInput);
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
+            openDeleteConfirm(tranzakcioId, categoria, osszeg);
         }
 
     </script>
 </head>
 <body>
     <div class="header">
-        <div>
-            <h1>Költség Követő</h1>
-            <h2>Üdvözlünk, {{ session('user')->nev }}!</h2>
-        </div>
+        <h1>Költség Követő</h1>
         <a href="/logout" class="logout-btn">Kijelentkezés</a>
     </div>
     
     <div class="container">
-        <div style="margin-bottom: 20px;">
-            <button onclick="openModal()" class="add-btn">+ Új Tranzakció</button>
-            <button onclick="location.href='/statisztika'" class="add-btn">Statisztika</button>
+        <p class="page-intro">Üdvözlünk, {{ session('user')->nev }}!</p>
+        <div class="page-actions">
+            <button onclick="openModal()" class="add-btn primary-btn">+ Új Tranzakció</button>
+            <button onclick="location.href='/statisztika'" class="add-btn secondary-btn">Statisztika</button>
         </div>
 
         <div class="main-layout">
@@ -933,8 +1940,10 @@
                                 </td>
                                 <td>{{ $item->megjegyzes }}</td>
                                 <td>
-                                    <button class="delete-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ $item->tipus ?? 'koltseg' }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">✏️</button>
-                                    <button class="delete-btn" onclick="deleteTranzakcio({{ $item->id }}, '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}')" title="Törlés">🗑️</button>
+                                    <div class="action-buttons">
+                                        <button class="action-btn" onclick="editTranzakcio({{ $item->id }}, '{{ $item->rogzites }}', '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }}', '{{ $item->penznem->nev }}', '{{ $item->tipus ?? 'koltseg' }}', '{{ addslashes($item->megjegyzes) }}')" title="Szerkesztés">Szerkesztés</button>
+                                        <button class="action-btn action-btn-danger" onclick="deleteTranzakcio({{ $item->id }}, '{{ $item->kategoria->nev ?? '-' }}', '{{ number_format($item->osszeg, 2, ',', ' ') }} {{ $item->penznem->nev }}')" title="Törlés">Törlés</button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -967,8 +1976,8 @@
                             <div class="stat-card-value" style="color:#1b8f3a;">{{ number_format($incomeTotal, 0, ',', ' ') }} Ft</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-card-label">Cashlow</div>
-                            <div class="stat-card-value" style="font-size: 14px;">
+                            <div class="stat-card-label">Pénzáramlás</div>
+                            <div class="stat-card-value">
                                 <span style="color: {{ $balanceTotal >= 0 ? '#1b8f3a' : '#b00020' }};">
                                     {{ number_format($balanceTotal, 0, ',', ' ') }} Ft
                                 </span>
@@ -983,7 +1992,7 @@
                                     <th>Pénznem</th>
                                     <th>Kiadás</th>
                                     <th>Bevétel</th>
-                                    <th>Cashflow</th>
+                                    <th>Pénzáramlás</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1042,19 +2051,17 @@
             
             <form action="/koltseg/add" method="POST" id="koltsegForm">
                 @csrf
-                <select name="tipus" id="tipus_input" required>
-                    <option value="koltseg" {{ old('tipus', 'koltseg') === 'koltseg' ? 'selected' : '' }}>Költség</option>
-                    <option value="bevetel" {{ old('tipus') === 'bevetel' ? 'selected' : '' }}>Bevétel</option>
-                </select>
+                <div class="type-toggle" role="group" aria-label="Tranzakció típusa">
+                    <input type="hidden" name="tipus" id="tipus_input" class="type-toggle-input" value="{{ old('tipus', 'koltseg') }}" required>
+                    <button type="button" class="type-toggle-option" data-value="koltseg" onclick="setTipus('koltseg')" aria-pressed="false">Költség</button>
+                    <button type="button" class="type-toggle-option" data-value="bevetel" onclick="setTipus('bevetel')" aria-pressed="false">Bevétel</button>
+                </div>
                 <!--Kategória-->
                 <div class="kategoria-input-wrapper" id="kategoria_wrapper">
                     <input type="text" id="kategoria_input" name="kategoria" placeholder="Kategória" value="{{ old('kategoria') }}" required
-                        oninput="filterKategoriak()" onclick="document.getElementById('kategoria_list').classList.add('show')">
-                    <div id="kategoria_list" class="kategoria-list">                        
-                        @foreach($kategoriak as $kat)
-                            <div class="kategoria-item" onclick="selectKategoria('{{ $kat->nev }}')">{{ $kat->nev }}</div>
-                        @endforeach
-                    </div>
+                        oninput="filterKategoriak()" onclick="filterKategoriak(true)" onblur="ensureCategorySaved()">
+                    <div id="kategoria_list" class="kategoria-list"></div>
+                    <div id="kategoria_message" class="field-inline-message"></div>
                 </div>
 
                 <input type="text" name="osszeg" placeholder="Összeg" value="{{ old('osszeg') }}" required>
@@ -1069,10 +2076,77 @@
                     </div>
                 </div>
                 
-                <input type="date" name="rogzites" value="{{ old('rogzites', now()->toDateString()) }}" required>
+                <div class="date-field date-picker" id="date_picker">
+                    <input
+                        type="hidden"
+                        class="date-picker-input"
+                        id="rogzites_input"
+                        name="rogzites"
+                        value="{{ old('rogzites', now()->toDateString()) }}"
+                        required
+                    >
+                    <button
+                        type="button"
+                        class="date-picker-trigger"
+                        id="datePickerTrigger"
+                        onclick="toggleDatePicker()"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="datePickerPopover"
+                    >
+                        <span class="date-picker-trigger-value" id="datePickerValue">Válassz dátumot</span>
+                        <span class="date-picker-trigger-icon" aria-hidden="true"></span>
+                    </button>
+                    <div class="date-picker-popover" id="datePickerPopover" aria-hidden="true">
+                        <div class="date-picker-header">
+                            <button type="button" class="date-picker-nav" onclick="changeCalendarMonth(-1)" aria-label="Előző hónap">‹</button>
+                            <div class="date-picker-month" id="datePickerMonth"></div>
+                            <button type="button" class="date-picker-nav" onclick="changeCalendarMonth(1)" aria-label="Következő hónap">›</button>
+                        </div>
+
+                        <div class="date-picker-weekdays">
+                            <span class="date-picker-weekday">H</span>
+                            <span class="date-picker-weekday">K</span>
+                            <span class="date-picker-weekday">Sze</span>
+                            <span class="date-picker-weekday">Cs</span>
+                            <span class="date-picker-weekday">P</span>
+                            <span class="date-picker-weekday">Szo</span>
+                            <span class="date-picker-weekday">V</span>
+                        </div>
+
+                        <div class="date-picker-grid" id="datePickerGrid"></div>
+
+                        <div class="date-picker-actions">
+                            <button type="button" class="date-picker-action" onclick="closeDatePicker()">Bezárás</button>
+                            <button type="button" class="date-picker-action date-picker-action-primary" onclick="jumpToToday()">Ma</button>
+                        </div>
+                    </div>
+                </div>
                 <textarea name="megjegyzes" placeholder="Leírás (megjegyzés)">{{ old('megjegyzes') }}</textarea>
                 <button type="submit">Tranzakció Hozzáadása</button>
             </form>
+        </div>
+    </div>
+
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content confirm-modal-content">
+            <div class="section-heading">
+                <h2 class="section-title">Biztosan törölni akarod?</h2>
+            </div>
+            <div class="confirm-meta">
+                <div class="confirm-meta-row">
+                    <span class="confirm-meta-label">Kategória</span>
+                    <span class="confirm-meta-value" id="deleteConfirmCategory">-</span>
+                </div>
+                <div class="confirm-meta-row">
+                    <span class="confirm-meta-label">Összeg</span>
+                    <span class="confirm-meta-value" id="deleteConfirmAmount">-</span>
+                </div>
+            </div>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-btn confirm-btn-secondary" onclick="closeDeleteConfirm()">Mégse</button>
+                <button type="button" class="confirm-btn confirm-btn-danger" onclick="confirmDeleteTranzakcio()">Törlés</button>
+            </div>
         </div>
     </div>
 </body>

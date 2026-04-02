@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
@@ -27,7 +27,6 @@ function defaultCategoryNames(): array
         'ruházat',
         'közlekedés',
         'befektetés',
-        'készpénzbefizetés',
     ];
 }
 
@@ -58,15 +57,98 @@ function getSuggestedCategories(int $userId)
         ->values();
 }
 
-function findOrCreateCategory(string $kategoriaNev, int $userId): kategoria
+function defaultCategoryNamesByType(string $type): array
+{
+    return $type === 'bevetel'
+        ? [
+            'fizetés',
+            'bónusz',
+            'ajándék',
+            'eladás',
+            'kamat',
+            'ösztöndíj',
+        ]
+        : [
+            'bevásárlás',
+            'szórakozás',
+            'vendéglátás',
+            'egészség',
+            'ruházat',
+            'közlekedés',
+            'befektetés',
+        ];
+}
+
+function getSuggestedCategoriesByType(int $userId, string $type)
+{
+    $normalizedType = resolveTransactionType($type) ?? 'koltseg';
+    $hasTransactionTypeColumn = ensureTipusColumnExists();
+    $hasCategoryTypeColumn = ensureCategoryTypeColumnExists();
+    $usedCategoryIds = $hasTransactionTypeColumn
+        ? Tranzakcio::where('felhasznaloid', $userId)
+            ->where('tipus', $normalizedType)
+            ->pluck('kategoriaid')
+            ->filter()
+            ->unique()
+            ->values()
+        : collect();
+
+    $databaseCategories = kategoria::query()
+        ->where(function ($query) use ($userId) {
+            $query->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
+        })
+        ->when($hasCategoryTypeColumn, function ($query) use ($normalizedType, $usedCategoryIds) {
+            $query->where(function ($innerQuery) use ($normalizedType, $usedCategoryIds) {
+                $innerQuery->where('tipus', $normalizedType)
+                    ->orWhereNull('tipus');
+
+                if ($usedCategoryIds->isNotEmpty()) {
+                    $innerQuery->orWhereIn('id', $usedCategoryIds);
+                }
+            });
+        })
+        ->get();
+
+    $defaultCategories = collect(defaultCategoryNamesByType($normalizedType))->map(function ($nev) {
+        return new kategoria([
+            'felhasznaloid' => null,
+            'nev' => $nev,
+        ]);
+    });
+
+    return $defaultCategories
+        ->concat($databaseCategories)
+        ->groupBy(function ($kategoria) {
+            return mb_strtolower(trim($kategoria->nev));
+        })
+        ->map(function ($group) {
+            return $group->sortByDesc(function ($kategoria) {
+                return $kategoria->felhasznaloid ? 1 : 0;
+            })->first();
+        })
+        ->sortBy('nev', SORT_NATURAL | SORT_FLAG_CASE)
+        ->values();
+}
+
+function findOrCreateCategory(string $kategoriaNev, int $userId, ?string $type = null): kategoria
 {
     $trimmedName = trim($kategoriaNev);
+    $normalizedType = resolveTransactionType($type);
+    $hasCategoryTypeColumn = ensureCategoryTypeColumnExists();
 
     $existingCategory = kategoria::whereRaw('LOWER(TRIM(nev)) = LOWER(?)', [$trimmedName])
         ->where(function ($q) use ($userId) {
             $q->where('felhasznaloid', $userId)->orWhereNull('felhasznaloid');
         })
+        ->when($hasCategoryTypeColumn && $normalizedType, function ($query) use ($normalizedType) {
+            $query->where(function ($innerQuery) use ($normalizedType) {
+                $innerQuery->where('tipus', $normalizedType)->orWhereNull('tipus');
+            });
+        })
         ->orderByRaw('CASE WHEN felhasznaloid IS NULL THEN 1 ELSE 0 END')
+        ->when($hasCategoryTypeColumn && $normalizedType, function ($query) use ($normalizedType) {
+            $query->orderByRaw('CASE WHEN tipus = ? THEN 0 WHEN tipus IS NULL THEN 1 ELSE 2 END', [$normalizedType]);
+        })
         ->first();
 
     if ($existingCategory) {
@@ -76,6 +158,7 @@ function findOrCreateCategory(string $kategoriaNev, int $userId): kategoria
     return kategoria::create([
         'felhasznaloid' => $userId,
         'nev' => $trimmedName,
+        ...($hasCategoryTypeColumn && $normalizedType ? ['tipus' => $normalizedType] : []),
     ]);
 }
 
@@ -114,6 +197,15 @@ function ensureTipusColumnExists(): bool
             });
         }
         return Schema::hasColumn('tranzakcio', 'tipus');
+    } catch (\Throwable $e) {
+        return false;
+    }
+}
+
+function ensureCategoryTypeColumnExists(): bool
+{
+    try {
+        return Schema::hasColumn('kategoria', 'tipus');
     } catch (\Throwable $e) {
         return false;
     }
@@ -325,7 +417,8 @@ Route::get('/fooldal', function () {
         ->locale('hu')
         ->translatedFormat('Y. F');
     
-    $kategoriak = getSuggestedCategories($userId);
+    $koltsegKategoriak = getSuggestedCategoriesByType($userId, 'koltseg');
+    $bevetelKategoriak = getSuggestedCategoriesByType($userId, 'bevetel');
     $penznemek = penznem::orderBy('nev')->get();
 
     // Statisztikai adatok - forint-alapú számítások
@@ -374,7 +467,8 @@ Route::get('/fooldal', function () {
 
     return view('fooldal', compact(
         'tranzakciokAtvalasztva',
-        'kategoriak',
+        'koltsegKategoriak',
+        'bevetelKategoriak',
         'penznemek',
         'expenseTotal',
         'incomeTotal',
@@ -562,7 +656,7 @@ Route::post('/koltseg/add', function () {
         return back()->withErrors(['tipus' => 'Válassz tranzakció típust (költség vagy bevétel).'])->withInput();
     }
 
-    $kat = findOrCreateCategory($kategoriaNev, $userId);
+    $kat = findOrCreateCategory($kategoriaNev, $userId, $tipus);
 
     $penznemRecord = findOrCreateCurrency($penznemNev);
     if (!$penznemRecord) {
@@ -585,16 +679,58 @@ Route::post('/koltseg/add', function () {
 
 Route::post('/kategoria/add', function () {
     if (!session('user')) {
-        return redirect('/login');
+        return response()->json(['success' => false, 'message' => 'Bejelentkezés szükséges.'], 401);
     }
-    
-    $kategoria = kategoria::create([
-        'felhasznaloid' => session('user')->id,
-        'nev' => request('kategoria_nev')
+
+    $tipus = resolveTransactionType(request('tipus'));
+    $kategoriaNev = trim((string) request('kategoria_nev'));
+
+    if ($kategoriaNev === '') {
+        return response()->json(['success' => false, 'message' => 'Adj meg egy kategórianevet.'], 422);
+    }
+
+    if (!$tipus) {
+        return response()->json(['success' => false, 'message' => 'Érvényes tranzakciótípus szükséges.'], 422);
+    }
+
+    $kategoria = findOrCreateCategory($kategoriaNev, session('user')->id, $tipus);
+
+    return response()->json([
+        'success' => true,
+        'kategoriaid' => $kategoria->id,
+        'kategoria_nev' => $kategoria->nev,
+        'tipus' => $tipus,
+        'owned' => (int) $kategoria->felhasznaloid === (int) session('user')->id,
     ]);
-    
-    return response()->json(['success' => true, 'kategoriaid' => $kategoria->id, 'kategoria_nev' => $kategoria->nev]);
-    return redirect('/fooldal')->with('success', 'Költség sikeresen hozzáadva!');
+});
+
+Route::delete('/kategoria/{id}', function ($id) {
+    if (!session('user')) {
+        return response()->json(['success' => false, 'message' => 'Bejelentkezés szükséges.'], 401);
+    }
+
+    $kategoria = kategoria::find($id);
+
+    if (!$kategoria) {
+        return response()->json(['success' => false, 'message' => 'A kategória nem található.'], 404);
+    }
+
+    if ((int) $kategoria->felhasznaloid !== (int) session('user')->id) {
+        return response()->json(['success' => false, 'message' => 'Csak a saját kategóriádat törölheted.'], 403);
+    }
+
+    $hasTransactions = Tranzakcio::where('kategoriaid', $kategoria->id)->exists();
+
+    if ($hasTransactions) {
+        return response()->json(['success' => false, 'message' => 'A kategória használatban van, ezért nem törölhető.'], 422);
+    }
+
+    $kategoria->delete();
+
+    return response()->json([
+        'success' => true,
+        'kategoriaid' => (int) $id,
+    ]);
 });
 
 Route::put('/koltseg/edit/{id}', function ($id) {
@@ -636,7 +772,7 @@ Route::put('/koltseg/edit/{id}', function ($id) {
         return back()->withErrors(['tipus' => 'Válassz tranzakció típust (költség vagy bevétel).'])->withInput();
     }
 
-    $kat = findOrCreateCategory($kategoriaNev, $userId);
+    $kat = findOrCreateCategory($kategoriaNev, $userId, $tipus);
 
     $penznemRecord = findOrCreateCurrency($penznemNev);
     if (!$penznemRecord) {
