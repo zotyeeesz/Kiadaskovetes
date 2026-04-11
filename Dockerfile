@@ -53,6 +53,7 @@ RUN composer install --optimize-autoloader --no-dev
 
 # Set environment
 RUN cp .env.example .env && \
+    echo "DB_DATABASE=/app/database/database.sqlite" >> .env && \
     php artisan key:generate
 
 # Create cache directories
