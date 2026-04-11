@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kiadaskovetes_app
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+    volumes:
+      - ./storage:/app/storage
+      - ./bootstrap/cache:/app/bootstrap/cache
+    networks:
+      - laravel
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  nginx:
+    image: nginx:alpine
+    container_name: kiadaskovetes_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/app
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - laravel
+
+  db:
+    image: sqlite
+    container_name: kiadaskovetes_db
+    volumes:
+      - ./database:/app/database
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
