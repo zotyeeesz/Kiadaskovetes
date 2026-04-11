@@ -1,224 +1,121 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regisztrálás - Költség Követő</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 400px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        form input {
-            display: block;
-            width: 100%;
-            margin: 15px 0;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        form input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-        form button {
-            width: 100%;
-            padding: 12px;
-            background-color: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        form button:hover {
-            background-color: #5568d3;
-        }
-        .info {
-            color: #0d47a1;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #e3f2fd;
-            border-left: 3px solid #0d47a1;
-            border-radius: 3px;
-            font-size: 13px;
-        }
-        .error {
-            color: #d32f2f;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #ffebee;
-            border-left: 3px solid #d32f2f;
-            border-radius: 3px;
-        }
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-        .success {
-            color: green;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #e8f5e9;
-            border-left: 3px solid green;
-            border-radius: 3px;
-        }
-    </style>
-    <style>
-        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
-        :root {
-            --ink: #112641;
-            --muted: #53657d;
-            --card: rgba(255, 255, 255, 0.78);
-            --line: rgba(17, 38, 65, 0.14);
-            --accent: #1f3b57;
-            --accent-soft: #2b4a67;
-            --ok: #0a9a57;
-            --bad: #bf1f3f;
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: "Sora", "Segoe UI", sans-serif;
-            background:
-                radial-gradient(circle at 18% 18%, rgba(255, 90, 54, 0.30), transparent 42%),
-                radial-gradient(circle at 82% 12%, rgba(0, 184, 217, 0.24), transparent 40%),
-                linear-gradient(135deg, #fdf2f8, #ecfeff 52%, #fff7ed) !important;
-            color: var(--ink);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .login-container {
-            border-radius: 24px !important;
-            background: var(--card) !important;
-            border: 1px solid var(--line);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 28px 60px rgba(255, 90, 54, 0.18) !important;
-        }
-        h1 {
-            font-size: clamp(1.6rem, 3vw, 2rem);
-            font-weight: 800;
-            letter-spacing: 0.4px;
-            color: var(--accent) !important;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
-        }
-        form input {
-            border-radius: 14px !important;
-            border: 1px solid var(--line) !important;
-            background: rgba(255,255,255,0.9);
-            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
-        }
-        form input:focus {
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 0 4px rgba(31,59,87,0.14) !important;
-            transform: translateY(-1px);
-        }
-        form button {
-            border-radius: 14px !important;
-            background: var(--accent) !important;
-            box-shadow: 0 12px 24px rgba(17, 38, 65, 0.16);
-            transition: transform .2s ease, box-shadow .2s ease;
-        }
-        form button:hover {
-            transform: translateY(-2px);
-            background: var(--accent-soft) !important;
-            box-shadow: 0 14px 28px rgba(17, 38, 65, 0.2);
-        }
-        .info, .error, .success {
-            border-radius: 12px !important;
-            border-left: 0 !important;
-            border: 1px solid transparent;
-        }
-        .info {
-            color: #0c5575 !important;
-            background: rgba(0, 184, 217, 0.13) !important;
-            border-color: rgba(0, 184, 217, 0.25) !important;
-        }
-        .error {
-            color: var(--bad) !important;
-            background: rgba(191, 31, 63, 0.10) !important;
-            border-color: rgba(191, 31, 63, 0.24) !important;
-        }
-        .success {
-            color: var(--ok) !important;
-            background: rgba(10, 154, 87, 0.11) !important;
-            border-color: rgba(10, 154, 87, 0.24) !important;
-        }
-        .register-link { color: var(--muted) !important; }
-        .register-link a {
-            color: var(--ink) !important;
-            font-weight: 700;
-            border-bottom: 2px solid rgba(255, 90, 54, 0.45);
-            text-decoration: none !important;
-        }
-        @media (max-width: 600px) {
-            .login-container { border-radius: 20px !important; }
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Költség Követő</h1>
-        
-        @if($errors->any())
-            <div class="error">
-                {{ $errors->first() }}
-            </div>
-        @endif
-        @if(session('success'))
-            <div class="success">
-                {{ session('success') }}
-            </div>
-        @endif
-        <div class="info">
-            Regisztráció után megerősítő emailt küldünk. A bejelentkezés csak megerősítés után lehetséges.
-        </div>
-        
-        <form action="/felhasznalo/add" method="POST">
-            @csrf
-            <input type="text" name="nev" placeholder="Felhasználónév" required>
-            <input type="email" name="email" placeholder="Email - bejelentkezéshez" required>
-            <input type="password" name="password" placeholder="Jelszó - bejelentkezéshez" required>
-            <input type="text" name="telefonszam" placeholder="Telefonszám - opcionális">
-            <input type="text" name="orszag" placeholder="Ország - opcionális">
-            <input type="text" name="telepules" placeholder="Település - opcionális">
-            <button type="submit">Regisztrálás</button>
-        </form>
-        
-        <div class="register-link">
-            Már van fiók? <a href="/login">Bejelentkezés</a>
+@extends('layouts.ui')
+
+@section('title', 'Regisztráció - Költség Követő')
+@section('body_class', 'auth-body')
+
+@section('content')
+    <div class="auth-shell">
+        <div class="auth-grid">
+            <section class="window window-dark reveal">
+                <div class="window-header">
+                    @include('partials.window_controls')
+                    <div class="window-title-group">
+                        <span class="window-title">Setup Assistant</span>
+                        <span class="window-subtitle">Személyes tér létrehozása néhány lépésben</span>
+                    </div>
+                </div>
+
+                <div class="window-body control-stack">
+                    <div>
+                        <span class="auth-kicker">Saját workspace</span>
+                        <h1 class="auth-title">Építs fel egy rendezett pénzügyi felületet magadnak.</h1>
+                        <p class="auth-copy">
+                            A regisztráció után egy ellenőrző emailt küldünk, és onnantól a saját tranzakcióid, kategóriáid és kimutatásaid külön térben élnek tovább.
+                        </p>
+                    </div>
+
+                    <div class="auth-beat-list">
+                        <article class="auth-beat">
+                            <span class="auth-beat-index">01</span>
+                            <div>
+                                <strong>Saját kategóriák</strong>
+                                <p>A munkafolyamat közben létrehozott kategóriák rögtön a saját profilodhoz kerülnek.</p>
+                            </div>
+                        </article>
+                        <article class="auth-beat">
+                            <span class="auth-beat-index">02</span>
+                            <div>
+                                <strong>Pénznemek együtt</strong>
+                                <p>A felület kezeli a vegyes pénznemeket, miközben a statisztikákat forint alapon is látod.</p>
+                            </div>
+                        </article>
+                        <article class="auth-beat">
+                            <span class="auth-beat-index">03</span>
+                            <div>
+                                <strong>Megerősített belépés</strong>
+                                <p>A hozzáférés email-validáció után aktiválódik, így tisztább és biztonságosabb marad a belépés.</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="window reveal">
+                <div class="window-header">
+                    @include('partials.window_controls')
+                    <div class="window-title-group">
+                        <span class="window-title">Új felhasználó</span>
+                        <span class="window-subtitle">Alapadatok és kapcsolatfelvétel</span>
+                    </div>
+                </div>
+
+                <div class="window-body">
+                    <div class="auth-panel-copy">
+                        <span class="section-kicker">Kezdjük el</span>
+                        <h2 class="section-title">Hozd létre a saját fiókodat.</h2>
+                        <p class="section-copy">A regisztráció után megerősítő emailt küldünk, a belépés ezután válik elérhetővé.</p>
+                    </div>
+
+                    @include('partials.flash_messages', ['info' => null])
+
+                    <div class="flash flash-info" style="margin-bottom: 18px;">
+                        Regisztráció után megerősítő emailt küldünk. A bejelentkezés csak az email cím jóváhagyása után lehetséges.
+                    </div>
+
+                    <form action="/felhasznalo/add" method="POST" class="form-grid two-columns">
+                        @csrf
+
+                        <div class="field-group span-2">
+                            <label class="field-label" for="reg_name">Név</label>
+                            <input class="field-control" id="reg_name" type="text" name="nev" value="{{ old('nev') }}" placeholder="Teljes név" required>
+                        </div>
+
+                        <div class="field-group span-2">
+                            <label class="field-label" for="reg_email">Email cím</label>
+                            <input class="field-control" id="reg_email" type="email" name="email" value="{{ old('email') }}" placeholder="pelda@email.hu" required>
+                        </div>
+
+                        <div class="field-group span-2">
+                            <label class="field-label" for="reg_password">Jelszó</label>
+                            <input class="field-control" id="reg_password" type="password" name="password" placeholder="Legalább 6 karakter" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="reg_phone">Telefonszám</label>
+                            <input class="field-control" id="reg_phone" type="text" name="telefonszam" value="{{ old('telefonszam') }}" placeholder="Opcionális">
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="reg_country">Ország</label>
+                            <input class="field-control" id="reg_country" type="text" name="orszag" value="{{ old('orszag') }}" placeholder="Opcionális">
+                        </div>
+
+                        <div class="field-group span-2">
+                            <label class="field-label" for="reg_city">Település</label>
+                            <input class="field-control" id="reg_city" type="text" name="telepules" value="{{ old('telepules') }}" placeholder="Opcionális">
+                        </div>
+
+                        <div class="field-group span-2">
+                            <button type="submit" class="btn btn-primary">Regisztráció</button>
+                        </div>
+                    </form>
+
+                    <p class="auth-footer" style="margin-top: 22px;">
+                        Már van fiókod?
+                        <a href="/login">Jelentkezz be</a>
+                    </p>
+                </div>
+            </section>
         </div>
     </div>
-</body>
-</html>
+@endsection
