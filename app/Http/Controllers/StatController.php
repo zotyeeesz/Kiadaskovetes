@@ -158,6 +158,14 @@ class StatController extends Controller
                 return $item->penznem->nev ?? 'HUF';
             })
             ->map(function ($items, $currency) {
+                $nativeIncome = $items
+                    ->filter(fn ($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
+                    ->sum('osszeg');
+
+                $nativeExpense = $items
+                    ->filter(fn ($t) => (($t->tipus ?? 'koltseg') === 'koltseg'))
+                    ->sum('osszeg');
+
                 $income = $items
                     ->filter(fn ($t) => (($t->tipus ?? 'koltseg') === 'bevetel'))
                     ->sum('osszeghuf');
@@ -168,6 +176,9 @@ class StatController extends Controller
 
                 return (object) [
                     'currency' => $currency,
+                    'native_income' => $nativeIncome,
+                    'native_expense' => $nativeExpense,
+                    'native_total' => $nativeIncome - $nativeExpense,
                     'income' => $income,
                     'expense' => $expense,
                     'total' => $income - $expense,

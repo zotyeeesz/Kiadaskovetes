@@ -524,9 +524,24 @@
                         @foreach($byCurrency as $c)
                             <tr>
                                 <td>{{ $c->currency }}</td>
-                                <td><strong style="color:#b00020;">{{ number_format($c->expense, 0, ',', ' ') }} Ft</strong></td>
-                                <td><strong style="color:#1b8f3a;">{{ number_format($c->income, 0, ',', ' ') }} Ft</strong></td>
-                                <td><strong style="color: {{ $c->total >= 0 ? '#1b8f3a' : '#b00020' }};">{{ number_format($c->total, 0, ',', ' ') }} Ft</strong></td>
+                                <td>
+                                    <strong style="color:#b00020;">{{ number_format($c->native_expense, 2, ',', ' ') }} {{ $c->currency }}</strong>
+                                    @if($c->currency !== 'HUF')
+                                        <div class="small-muted">{{ number_format($c->expense, 0, ',', ' ') }} Ft</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color:#1b8f3a;">{{ number_format($c->native_income, 2, ',', ' ') }} {{ $c->currency }}</strong>
+                                    @if($c->currency !== 'HUF')
+                                        <div class="small-muted">{{ number_format($c->income, 0, ',', ' ') }} Ft</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color: {{ $c->native_total >= 0 ? '#1b8f3a' : '#b00020' }};">{{ number_format($c->native_total, 2, ',', ' ') }} {{ $c->currency }}</strong>
+                                    @if($c->currency !== 'HUF')
+                                        <div class="small-muted">{{ number_format($c->total, 0, ',', ' ') }} Ft</div>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

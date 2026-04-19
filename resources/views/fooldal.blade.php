@@ -533,10 +533,14 @@
             color: var(--ink);
             background: #f8fafc !important;
             min-height: 100vh;
+            padding-top: 84px !important;
         }
         .header {
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -646,6 +650,86 @@
             gap: 12px;
             margin: 0 0 30px;
             padding: 0;
+        }
+        .filter-panel {
+            display: grid;
+            gap: 16px;
+            margin: 0 0 24px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+        }
+        .filter-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-panel-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .filter-panel-note {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.87rem;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .filter-field {
+            display: grid;
+            gap: 6px;
+        }
+        .filter-field-wide {
+            grid-column: span 2;
+        }
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        .filter-input,
+        .filter-select {
+            min-height: 42px;
+            width: 100%;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+        }
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-summary {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .filter-button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         .add-btn {
             min-height: 46px;
@@ -1256,6 +1340,12 @@
                 gap: 10px;
                 margin-bottom: 24px;
             }
+            .filter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .filter-field-wide {
+                grid-column: span 2;
+            }
             .add-btn {
                 width: 100%;
             }
@@ -1273,6 +1363,9 @@
                 flex-direction: column;
                 gap: 12px;
             }
+            body {
+                padding-top: 112px !important;
+            }
             .header-brand {
                 width: 100%;
                 justify-content: center;
@@ -1286,6 +1379,15 @@
             }
         }
         @media (max-width: 480px) {
+            body {
+                padding-top: 104px !important;
+            }
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            .filter-field-wide {
+                grid-column: auto;
+            }
             .header-logo {
                 width: 40px;
                 height: 40px;
@@ -1406,8 +1508,28 @@
             messageBox.className = `field-inline-message${type ? ` ${type}` : ''}`;
         }
 
+        function getCategoryLists() {
+            return {
+                koltseg: document.getElementById('kategoria_list_koltseg'),
+                bevetel: document.getElementById('kategoria_list_bevetel'),
+            };
+        }
+
+        function getActiveCategoryList() {
+            const lists = getCategoryLists();
+            return lists[getActiveTipus()] || null;
+        }
+
+        function hideCategoryLists() {
+            Object.values(getCategoryLists()).forEach((list) => {
+                if (list) {
+                    list.classList.remove('show');
+                }
+            });
+        }
+
         function renderKategoriak(filterText = '', forceShow = false) {
-            const list = document.getElementById('kategoria_list');
+            const list = getActiveCategoryList();
 
             if (!list) {
                 return;
@@ -1415,6 +1537,8 @@
 
             const normalizedFilter = filterText.toLowerCase();
             const matches = getActiveKategoriak().filter((item) => item.nev.toLowerCase().includes(normalizedFilter));
+
+            hideCategoryLists();
 
             list.innerHTML = matches
                 .map((item) => {
@@ -1856,7 +1980,7 @@
 
         function selectKategoria(nev) {
             document.getElementById('kategoria_input').value = nev;
-            document.getElementById('kategoria_list').classList.remove('show');
+            hideCategoryLists();
             setCategoryMessage('');
         }
 
@@ -1902,10 +2026,9 @@
         
         document.addEventListener('click', function(event) {
             const wrapper = document.getElementById('kategoria_wrapper');
-            const list = document.getElementById('kategoria_list');
             
             if (wrapper && !wrapper.contains(event.target)) {
-                list.classList.remove('show');
+                hideCategoryLists();
             }
         });
         
@@ -2002,6 +2125,81 @@
             <button onclick="location.href='/statisztika'" class="add-btn secondary-btn">Statisztika</button>
         </div>
 
+        <form action="/fooldal" method="GET" class="filter-panel">
+            <input type="hidden" name="honap" value="{{ $selectedMonth }}">
+            <div class="filter-panel-head">
+                <div>
+                    <h2 class="filter-panel-title">Részletes keresés</h2>
+                    <p class="filter-panel-note">Szűrj szövegre, típusra, kategóriára, pénznemre, összegre vagy konkrét dátumtartományra.</p>
+                </div>
+            </div>
+
+            <div class="filter-grid">
+                <div class="filter-field filter-field-wide">
+                    <label class="filter-label" for="szuro_kereses">Szabad szavas keresés</label>
+                    <input class="filter-input" id="szuro_kereses" type="text" name="szuro_kereses" value="{{ $filters['kereses'] }}" placeholder="Megjegyzés, kategória, pénznem, dátum...">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_tipus">Típus</label>
+                    <select class="filter-select" id="szuro_tipus" name="szuro_tipus">
+                        <option value="">Minden</option>
+                        <option value="koltseg" {{ $filters['tipus'] === 'koltseg' ? 'selected' : '' }}>Költség</option>
+                        <option value="bevetel" {{ $filters['tipus'] === 'bevetel' ? 'selected' : '' }}>Bevétel</option>
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_penznem">Pénznem</label>
+                    <select class="filter-select" id="szuro_penznem" name="szuro_penznem">
+                        <option value="">Mindegyik</option>
+                        @foreach($penznemek as $penznem)
+                            <option value="{{ $penznem->nev }}" {{ $filters['penznem'] === $penznem->nev ? 'selected' : '' }}>{{ $penznem->nev }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="filter-field filter-field-wide">
+                    <label class="filter-label" for="szuro_kategoria">Kategória</label>
+                    <input class="filter-input" id="szuro_kategoria" type="text" name="szuro_kategoria" value="{{ $filters['kategoria'] }}" placeholder="Például bevásárlás vagy fizetés">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_osszeg_min">Minimum összeg</label>
+                    <input class="filter-input" id="szuro_osszeg_min" type="text" name="szuro_osszeg_min" value="{{ request('szuro_osszeg_min') }}" placeholder="0">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_osszeg_max">Maximum összeg</label>
+                    <input class="filter-input" id="szuro_osszeg_max" type="text" name="szuro_osszeg_max" value="{{ request('szuro_osszeg_max') }}" placeholder="100000">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_datum_tol">Dátumtól</label>
+                    <input class="filter-input" id="szuro_datum_tol" type="date" name="szuro_datum_tol" value="{{ $filters['datum_tol'] }}">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_datum_ig">Dátumig</label>
+                    <input class="filter-input" id="szuro_datum_ig" type="date" name="szuro_datum_ig" value="{{ $filters['datum_ig'] }}">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <div class="filter-summary">
+                    @if($isDetailedSearchActive)
+                        Szűrt találatok: <strong>{{ $tranzakciokAtvalasztva->count() }}</strong> tétel
+                    @else
+                        Jelenleg a kiválasztott hónap tranzakciói látszanak.
+                    @endif
+                </div>
+                <div class="filter-button-row">
+                    <a href="/fooldal?honap={{ $selectedMonth }}" class="add-btn secondary-btn">Szűrők törlése</a>
+                    <button type="submit" class="add-btn primary-btn">Keresés</button>
+                </div>
+            </div>
+        </form>
+
         <div class="main-layout">
             <!-- Bal oldal: Költségek listája (3/5) -->
             <div class="left-column">
@@ -2018,12 +2216,14 @@
                     @endphp
 
                     <div class="transactions-title-row">
-                        <h2>Tranzakcióid - {{ $selectedMonthLabel }}</h2>
-                        <div class="month-inline-controls">
-                            <a class="month-nav-btn {{ $prevMonth ? '' : 'disabled' }}" href="{{ $prevMonth ? '/fooldal?honap='.$prevMonth : '#' }}" aria-label="Előző hónap">‹</a>
-                            <span class="month-inline-current">{{ $selectedMonthLabel }}</span>
-                            <a class="month-nav-btn {{ $nextMonth ? '' : 'disabled' }}" href="{{ $nextMonth ? '/fooldal?honap='.$nextMonth : '#' }}" aria-label="Következő hónap">›</a>
-                        </div>
+                        <h2>{{ $listTitle }}</h2>
+                        @if(!$hasDateRangeFilter)
+                            <div class="month-inline-controls">
+                                <a class="month-nav-btn {{ $prevMonth ? '' : 'disabled' }}" href="{{ $prevMonth ? '/fooldal?'.($monthNavigationQuery ? $monthNavigationQuery.'&' : '').'honap='.$prevMonth : '#' }}" aria-label="Előző hónap">‹</a>
+                                <span class="month-inline-current">{{ $selectedMonthLabel }}</span>
+                                <a class="month-nav-btn {{ $nextMonth ? '' : 'disabled' }}" href="{{ $nextMonth ? '/fooldal?'.($monthNavigationQuery ? $monthNavigationQuery.'&' : '').'honap='.$nextMonth : '#' }}" aria-label="Következő hónap">›</a>
+                            </div>
+                        @endif
                     </div>
 
                     @if($tranzakciokAtvalasztva->count() > 0)
@@ -2065,7 +2265,7 @@
                     </table>
                     @else
                     <div class="no-data">
-                        <p>Ebben a hónapban még nincs tranzakció.</p>
+                        <p>{{ $isDetailedSearchActive ? 'Nincs találat a megadott szűrőkre.' : 'Ebben a hónapban még nincs tranzakció.' }}</p>
                     </div>
                     @endif
                 @else
@@ -2175,7 +2375,8 @@
                 <div class="kategoria-input-wrapper" id="kategoria_wrapper">
                     <input type="text" id="kategoria_input" name="kategoria" placeholder="Kategória" value="{{ old('kategoria') }}" required
                         oninput="filterKategoriak()" onclick="filterKategoriak(true)" onblur="ensureCategorySaved()">
-                    <div id="kategoria_list" class="kategoria-list"></div>
+                    <div id="kategoria_list_koltseg" class="kategoria-list" data-tipus="koltseg"></div>
+                    <div id="kategoria_list_bevetel" class="kategoria-list" data-tipus="bevetel"></div>
                     <div id="kategoria_message" class="field-inline-message"></div>
                 </div>
 

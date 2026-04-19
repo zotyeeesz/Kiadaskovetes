@@ -286,6 +286,11 @@ function normalizeCurrencyCode(?string $currency): string
     return preg_replace('/\s+/', '', $normalized);
 }
 
+function normalizeSearchText(?string $value): string
+{
+    return trim((string) $value);
+}
+
 function defaultCurrencyCodes(): array
 {
     return [
@@ -436,7 +441,7 @@ Route::get('/fooldal', function () {
             : ($availableMonths->first() ?? $currentMonth);
     }
 
-    $tranzakciokAtvalasztva = $tranzakciokAtvalasztva
+    $selectedMonthTransactions = $tranzakciokAtvalasztva
         ->filter(function ($t) use ($selectedMonth) {
             try {
                 return Carbon::parse($t->rogzites)->format('Y-m') === $selectedMonth;
@@ -450,6 +455,118 @@ Route::get('/fooldal', function () {
     $selectedMonthLabel = Carbon::createFromFormat('Y-m', $selectedMonth)
         ->locale('hu')
         ->translatedFormat('Y. F');
+
+    $filters = [
+        'tipus' => resolveTransactionType(request('szuro_tipus')) ?? '',
+        'kategoria' => normalizeSearchText(request('szuro_kategoria')),
+        'penznem' => normalizeCurrencyCode(request('szuro_penznem')),
+        'osszeg_min' => normalizeAmountValue(request('szuro_osszeg_min')),
+        'osszeg_max' => normalizeAmountValue(request('szuro_osszeg_max')),
+        'datum_tol' => normalizeSearchText(request('szuro_datum_tol')),
+        'datum_ig' => normalizeSearchText(request('szuro_datum_ig')),
+        'kereses' => normalizeSearchText(request('szuro_kereses')),
+    ];
+
+    $hasDateRangeFilter = preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_tol']) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_ig']);
+    $isDetailedSearchActive = $filters['tipus'] !== ''
+        || $filters['kategoria'] !== ''
+        || $filters['penznem'] !== ''
+        || $filters['osszeg_min'] !== null
+        || $filters['osszeg_max'] !== null
+        || $filters['kereses'] !== ''
+        || $hasDateRangeFilter;
+
+    $baseTransactions = $hasDateRangeFilter ? $tranzakciokAtvalasztva : $selectedMonthTransactions;
+
+    $tranzakciokAtvalasztva = $baseTransactions
+        ->filter(function ($t) use ($filters, $hasDateRangeFilter) {
+            try {
+                $rogzites = Carbon::parse($t->rogzites);
+            } catch (\Throwable $e) {
+                return false;
+            }
+
+            if ($hasDateRangeFilter) {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_tol']) && $rogzites->lt(Carbon::parse($filters['datum_tol'])->startOfDay())) {
+                    return false;
+                }
+
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_ig']) && $rogzites->gt(Carbon::parse($filters['datum_ig'])->endOfDay())) {
+                    return false;
+                }
+            }
+
+            if ($filters['tipus'] !== '' && (($t->tipus ?? 'koltseg') !== $filters['tipus'])) {
+                return false;
+            }
+
+            $categoryName = mb_strtolower(trim((string) ($t->kategoria->nev ?? '')));
+            if ($filters['kategoria'] !== '' && !str_contains($categoryName, mb_strtolower($filters['kategoria']))) {
+                return false;
+            }
+
+            $currencyCode = normalizeCurrencyCode($t->penznem->nev ?? 'HUF');
+            if ($filters['penznem'] !== '' && $currencyCode !== $filters['penznem']) {
+                return false;
+            }
+
+            $amount = (float) ($t->osszeg ?? 0);
+            if ($filters['osszeg_min'] !== null && $amount < $filters['osszeg_min']) {
+                return false;
+            }
+
+            if ($filters['osszeg_max'] !== null && $amount > $filters['osszeg_max']) {
+                return false;
+            }
+
+            $search = mb_strtolower($filters['kereses']);
+            if ($search !== '') {
+                $haystack = mb_strtolower(implode(' ', [
+                    (string) ($t->kategoria->nev ?? ''),
+                    (string) ($t->megjegyzes ?? ''),
+                    (string) ($t->penznem->nev ?? ''),
+                    (string) ($t->rogzites ?? ''),
+                    (string) ($t->tipus ?? 'koltseg'),
+                ]));
+
+                if (!str_contains($haystack, $search)) {
+                    return false;
+                }
+            }
+
+            return true;
+        })
+        ->sortByDesc('rogzites')
+        ->values();
+
+    $selectedRangeLabel = '';
+    if ($hasDateRangeFilter) {
+        $fromLabel = preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_tol'])
+            ? Carbon::parse($filters['datum_tol'])->locale('hu')->translatedFormat('Y. m. d.')
+            : null;
+        $toLabel = preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['datum_ig'])
+            ? Carbon::parse($filters['datum_ig'])->locale('hu')->translatedFormat('Y. m. d.')
+            : null;
+
+        $selectedRangeLabel = $fromLabel && $toLabel
+            ? $fromLabel . ' - ' . $toLabel
+            : ($fromLabel ? $fromLabel . ' után' : ($toLabel ? $toLabel . ' előtt' : 'Egyedi időszak'));
+    }
+
+    $listTitle = $hasDateRangeFilter
+        ? 'Tranzakcióid - ' . $selectedRangeLabel
+        : 'Tranzakcióid - ' . $selectedMonthLabel;
+
+    $monthNavigationQuery = http_build_query(array_filter([
+        'szuro_tipus' => $filters['tipus'],
+        'szuro_kategoria' => $filters['kategoria'],
+        'szuro_penznem' => $filters['penznem'],
+        'szuro_osszeg_min' => request('szuro_osszeg_min'),
+        'szuro_osszeg_max' => request('szuro_osszeg_max'),
+        'szuro_datum_tol' => $filters['datum_tol'],
+        'szuro_datum_ig' => $filters['datum_ig'],
+        'szuro_kereses' => $filters['kereses'],
+    ], fn ($value) => $value !== null && $value !== ''));
     
     $koltsegKategoriak = getSuggestedCategoriesByType($userId, 'koltseg');
     $bevetelKategoriak = getSuggestedCategoriesByType($userId, 'bevetel');
@@ -513,7 +630,12 @@ Route::get('/fooldal', function () {
         'hasTipusColumn',
         'availableMonths',
         'selectedMonth',
-        'selectedMonthLabel'
+        'selectedMonthLabel',
+        'filters',
+        'isDetailedSearchActive',
+        'hasDateRangeFilter',
+        'listTitle',
+        'monthNavigationQuery'
     ));
 });
 
