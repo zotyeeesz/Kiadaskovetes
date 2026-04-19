@@ -65,9 +65,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+            padding: 8px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
             border-radius: 12px;
-            color: white;
+            color: #111827;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+        .header-logo svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
         }
         .header-title {
             display: flex;
@@ -354,9 +362,7 @@
     <div class="header">
         <div class="header-brand">
             <div class="header-logo">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+                @include('partials.app_logo')
             </div>
             <div class="header-title">
                 <h1>SpendWise</h1>

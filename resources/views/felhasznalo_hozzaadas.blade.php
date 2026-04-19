@@ -139,10 +139,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
             border-radius: 16px;
-            color: white;
+            color: #111827;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
             margin: 0 auto 16px;
+        }
+        .login-logo svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
         }
         .login-brand h1 {
             font-size: 1.75rem;
@@ -150,14 +158,6 @@
             color: var(--ink) !important;
             margin: 0 0 4px 0;
             letter-spacing: -0.5px;
-        }
-        .login-subtitle {
-            font-size: 0.85rem;
-            color: var(--muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0;
         }
         form input {
             border-radius: 10px !important;
@@ -243,12 +243,9 @@
     <div class="login-container">
         <div class="login-brand">
             <div class="login-logo">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+                @include('partials.app_logo')
             </div>
             <h1>SpendWise</h1>
-            <p class="login-subtitle">Költségkövető</p>
         </div>
         
         @if($errors->any())
