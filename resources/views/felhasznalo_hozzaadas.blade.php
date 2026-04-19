@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regisztrálás - Költség Követő</title>
+    <title>Regisztrálás - SpendWise</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -96,100 +96,160 @@
         }
     </style>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
         :root {
-            --ink: #112641;
-            --muted: #53657d;
-            --card: rgba(255, 255, 255, 0.78);
-            --line: rgba(17, 38, 65, 0.14);
-            --accent: #1f3b57;
-            --accent-soft: #2b4a67;
-            --ok: #0a9a57;
-            --bad: #bf1f3f;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --card: #ffffff;
+            --line: rgba(30, 41, 59, 0.1);
+            --accent: #059669;
+            --accent-soft: #10b981;
+            --accent-light: rgba(5, 150, 105, 0.1);
+            --ok: #10b981;
+            --bad: #ef4444;
+            --info: #3b82f6;
         }
         * { box-sizing: border-box; }
         body {
-            font-family: "Sora", "Segoe UI", sans-serif;
-            background:
-                radial-gradient(circle at 18% 18%, rgba(255, 90, 54, 0.30), transparent 42%),
-                radial-gradient(circle at 82% 12%, rgba(0, 184, 217, 0.24), transparent 40%),
-                linear-gradient(135deg, #fdf2f8, #ecfeff 52%, #fff7ed) !important;
+            font-family: "Instrument Sans", "Segoe UI", sans-serif;
+            background: #f8fafc !important;
             color: var(--ink);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .login-container {
-            border-radius: 24px !important;
+            border-radius: 16px !important;
             background: var(--card) !important;
             border: 1px solid var(--line);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 28px 60px rgba(255, 90, 54, 0.18) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
         }
-        h1 {
-            font-size: clamp(1.6rem, 3vw, 2rem);
-            font-weight: 800;
-            letter-spacing: 0.4px;
-            color: var(--accent) !important;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        .login-brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+            border-radius: 16px;
+            color: white;
+            margin: 0 auto 16px;
+        }
+        .login-brand h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--ink) !important;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+        .login-subtitle {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
         }
         form input {
-            border-radius: 14px !important;
+            border-radius: 10px !important;
             border: 1px solid var(--line) !important;
-            background: rgba(255,255,255,0.9);
-            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+            background: #ffffff !important;
+            padding: 12px 14px;
+            font-size: 14px;
+            transition: all .2s ease;
+            width: 100%;
+            margin: 12px 0;
+            box-sizing: border-box;
         }
         form input:focus {
             border-color: var(--accent) !important;
-            box-shadow: 0 0 0 4px rgba(31,59,87,0.14) !important;
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 3px var(--accent-light) !important;
+            outline: none;
         }
         form button {
-            border-radius: 14px !important;
+            border-radius: 10px !important;
             background: var(--accent) !important;
-            box-shadow: 0 12px 24px rgba(17, 38, 65, 0.16);
-            transition: transform .2s ease, box-shadow .2s ease;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+            transition: all .2s ease;
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 16px;
+            border: none;
+            cursor: pointer;
+            color: white;
         }
         form button:hover {
-            transform: translateY(-2px);
-            background: var(--accent-soft) !important;
-            box-shadow: 0 14px 28px rgba(17, 38, 65, 0.2);
+            transform: translateY(-1px);
+            background: #047857 !important;
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
         }
         .info, .error, .success {
-            border-radius: 12px !important;
-            border-left: 0 !important;
+            border-radius: 10px !important;
             border: 1px solid transparent;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-size: 14px;
         }
         .info {
-            color: #0c5575 !important;
-            background: rgba(0, 184, 217, 0.13) !important;
-            border-color: rgba(0, 184, 217, 0.25) !important;
+            color: var(--info) !important;
+            background: rgba(59, 130, 246, 0.1) !important;
+            border-color: rgba(59, 130, 246, 0.2) !important;
         }
         .error {
             color: var(--bad) !important;
-            background: rgba(191, 31, 63, 0.10) !important;
-            border-color: rgba(191, 31, 63, 0.24) !important;
+            background: rgba(239, 68, 68, 0.1) !important;
+            border-color: rgba(239, 68, 68, 0.2) !important;
         }
         .success {
             color: var(--ok) !important;
-            background: rgba(10, 154, 87, 0.11) !important;
-            border-color: rgba(10, 154, 87, 0.24) !important;
+            background: rgba(16, 185, 129, 0.1) !important;
+            border-color: rgba(16, 185, 129, 0.2) !important;
         }
-        .register-link { color: var(--muted) !important; }
+        .register-link { 
+            color: var(--muted) !important;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
         .register-link a {
-            color: var(--ink) !important;
-            font-weight: 700;
-            border-bottom: 2px solid rgba(255, 90, 54, 0.45);
+            color: var(--accent) !important;
+            font-weight: 600;
             text-decoration: none !important;
+            border-bottom: 2px solid var(--accent-light);
+        }
+        .register-link a:hover {
+            color: #047857 !important;
         }
         @media (max-width: 600px) {
-            .login-container { border-radius: 20px !important; }
+            .login-container { 
+                border-radius: 12px !important; 
+                padding: 24px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>Költség Követő</h1>
+        <div class="login-brand">
+            <div class="login-logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <h1>SpendWise</h1>
+            <p class="login-subtitle">Költségkövető</p>
+        </div>
         
         @if($errors->any())
             <div class="error">

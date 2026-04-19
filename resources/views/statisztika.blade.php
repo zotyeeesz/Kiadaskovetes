@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statisztika - Költség Követő</title>
+    <title>Statisztika - SpendWise</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; }
         .header { background-color: #667eea; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -22,81 +22,123 @@
         .small-muted { color: #666; font-size: 13px; }
     </style>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
         :root {
-            --ink: #112641;
-            --muted: #5a6b82;
-            --surface: rgba(255,255,255,0.78);
-            --line: rgba(17,38,65,0.14);
-            --accent: #1f3b57;
-            --accent-soft: #2b4a67;
-            --income: #089451;
-            --expense: #bf1f3f;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --surface: #ffffff;
+            --line: rgba(30, 41, 59, 0.1);
+            --accent: #059669;
+            --accent-soft: #10b981;
+            --accent-light: rgba(5, 150, 105, 0.1);
+            --income: #10b981;
+            --expense: #ef4444;
         }
         * { box-sizing: border-box; }
         body {
-            font-family: "Sora", "Segoe UI", sans-serif !important;
+            font-family: "Instrument Sans", "Segoe UI", sans-serif !important;
             color: var(--ink);
-            background:
-                radial-gradient(circle at 12% 10%, rgba(255, 90, 54, 0.25), transparent 40%),
-                radial-gradient(circle at 90% 8%, rgba(0, 184, 217, 0.22), transparent 42%),
-                linear-gradient(130deg, #fef6e4, #e6f8ff 48%, #f7f8ff) !important;
+            background: #f8fafc !important;
         }
         .header {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(255,255,255,0.74) !important;
+            background: #ffffff !important;
             border-bottom: 1px solid var(--line);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 12px 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 12px 24px;
+            margin: 0;
         }
-        .header h1 {
-            font-size: 0.98rem;
-            font-weight: 800;
-            color: var(--accent);
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        body {
+            margin: 0;
+            padding: 0;
         }
-        .header h2 {
-            color: var(--muted) !important;
-            font-size: 0.82rem;
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
-        .logout-btn {
-            min-height: 42px;
+        .header-logo {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.5px;
+        }
+        .header-subtitle {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .back-btn {
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
             padding: 0 16px;
-            border: 1px solid rgba(17, 38, 65, 0.14);
-            border-radius: 12px !important;
-            background: rgba(255,255,255,0.74) !important;
-            color: var(--accent) !important;
-            box-shadow: none;
-            font-size: 0.92rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
+            border: 1px solid var(--line);
+            border-radius: 10px !important;
+            background: #ffffff !important;
+            color: var(--ink) !important;
+            font-size: 0.9rem;
+            font-weight: 500;
             text-decoration: none;
-            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+            transition: all .2s ease;
+        }
+        .back-btn:hover {
+            background: var(--accent-light) !important;
+            border-color: var(--accent);
+            color: var(--accent) !important;
+        }
+        .logout-btn {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px !important;
+            background: #ffffff !important;
+            color: var(--ink) !important;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all .2s ease;
         }
         .logout-btn:hover {
             transform: translateY(-1px);
-            background: rgba(255,255,255,0.92) !important;
-            border-color: rgba(17, 38, 65, 0.22);
-            box-shadow: 0 8px 18px rgba(17, 38, 65, 0.08);
-        }
-        .header > div:last-child {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-        }
-        .header > div:last-child .logout-btn {
-            margin-right: 0 !important;
+            background: var(--accent-light) !important;
+            border-color: var(--accent);
+            color: var(--accent) !important;
         }
         .container {
             width: min(960px, calc(100% - 24px));
-            padding: 14px 0 22px !important;
+            padding: 16px 0 22px !important;
             margin: 0 auto;
         }
         .card {
@@ -310,13 +352,32 @@
 </head>
 <body>
     <div class="header">
-        <div>
-            <h1>Költség Követő</h1>
-            <h2>Statisztika - {{ $selectedView === 'eves' ? 'Éves nézet' : 'Havi nézet' }}</h2>
+        <div class="header-brand">
+            <div class="header-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <div class="header-title">
+                <h1>SpendWise</h1>
+                <span class="header-subtitle">Statisztika - {{ $selectedView === 'eves' ? 'Éves' : 'Havi' }} nézet</span>
+            </div>
         </div>
-        <div>
-            <a href="/fooldal" class="logout-btn" style="margin-right:10px;">Vissza</a>
-            <a href="/logout" class="logout-btn">Kijelentkezés</a>
+        <div class="header-user">
+            <a href="/fooldal" class="back-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Vissza
+            </a>
+            <a href="/logout" class="logout-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Kijelentkezés
+            </a>
         </div>
     </div>
 

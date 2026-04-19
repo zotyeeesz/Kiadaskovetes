@@ -266,7 +266,7 @@ function sendVerificationEmail(felhasznalo $user): bool
             "Szia {$user->nev}!\n\nKérlek erősítsd meg az email címed az alábbi linkre kattintva:\n{$verifyUrl}\n\nA link biztonsági okból 24 óráig érvényes.\n\nHa nem te regisztráltál, hagyd figyelmen kívül ezt az üzenetet.",
             function ($message) use ($user) {
                 $message->to($user->email)
-                    ->subject('Email megerősítés - Költség Követő');
+                    ->subject('Email megerősítés - SpendWise');
             }
         );
 
