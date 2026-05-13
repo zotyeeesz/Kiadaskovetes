@@ -620,13 +620,13 @@
             color: var(--accent) !important;
         }
         .container {
-            padding: 20px 24px 40px !important;
+            padding: 42px 24px 40px !important;
             max-width: 1560px;
         }
         .page-intro {
-            margin: 0 0 14px;
+            margin: 0 0 12px;
             color: var(--ink);
-            font-size: 1.38rem;
+            font-size: 1.26rem;
             line-height: 1.25;
             font-weight: 700;
             letter-spacing: -0.01em;
@@ -647,65 +647,73 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
-            margin: 0 0 30px;
-            padding: 0;
+            gap: 10px;
+            margin: 0 0 20px;
+            padding: 10px 0 0;
+        }
+        .page-actions .add-btn {
+            min-height: 44px;
+            padding: 0 16px;
+            box-shadow: 0 10px 18px -18px rgba(15, 23, 42, 0.42);
         }
         .filter-panel {
             display: grid;
-            gap: 16px;
-            margin: 0 0 24px;
-            padding: 18px;
+            gap: 10px;
+            max-width: 1120px;
+            margin: 0 0 18px;
+            padding: 12px 14px;
             border: 1px solid var(--line);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.94);
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.86);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.035);
         }
         .filter-panel-head {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 8px;
         }
         .filter-panel-title {
             margin: 0;
-            font-size: 1rem;
+            font-size: 0.84rem;
             font-weight: 700;
             color: var(--ink);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
         .filter-panel-note {
-            margin: 4px 0 0;
+            margin: 2px 0 0;
             color: var(--muted);
-            font-size: 0.87rem;
+            font-size: 0.78rem;
         }
         .filter-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: minmax(220px, 1.45fr) repeat(4, minmax(120px, 0.72fr));
+            gap: 8px;
+            align-items: end;
         }
         .filter-field {
             display: grid;
-            gap: 6px;
+            gap: 4px;
         }
         .filter-field-wide {
             grid-column: span 2;
         }
         .filter-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
             color: var(--muted);
             text-transform: uppercase;
         }
         .filter-input,
         .filter-select {
-            min-height: 42px;
+            min-height: 38px;
             width: 100%;
-            padding: 0 12px;
-            border-radius: 10px;
+            padding: 0 10px;
+            border-radius: 8px;
             border: 1px solid var(--line);
-            background: #fff;
+            background: #fbfcfe;
             color: var(--ink);
             font: inherit;
         }
@@ -717,19 +725,21 @@
         }
         .filter-actions {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-        }
-        .filter-summary {
-            color: var(--muted);
-            font-size: 0.9rem;
+            padding-top: 2px;
         }
         .filter-button-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
+        }
+        .filter-button-row .add-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 0.87rem;
         }
         .add-btn {
             min-height: 46px;
@@ -768,6 +778,67 @@
         .add-btn.secondary-btn {
             background: #ffffff !important;
             color: var(--ink) !important;
+        }
+        .filter-more {
+            position: relative;
+        }
+        .filter-more summary {
+            list-style: none;
+        }
+        .filter-more summary::-webkit-details-marker {
+            display: none;
+        }
+        .filter-more-trigger {
+            min-height: 34px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px dashed rgba(100, 116, 139, 0.4);
+            background: rgba(248, 250, 252, 0.9);
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all .2s ease;
+        }
+        .filter-more-trigger::after {
+            content: "+";
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .filter-more[open] .filter-more-trigger {
+            border-color: rgba(5, 150, 105, 0.35);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .filter-more[open] .filter-more-trigger::after {
+            content: "−";
+        }
+        .filter-more-panel {
+            position: absolute;
+            left: 0;
+            bottom: calc(100% + 8px);
+            width: min(440px, calc(100vw - 72px));
+            display: grid;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.1);
+            z-index: 30;
+        }
+        .filter-more-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .filter-more-grid .filter-field-wide {
+            grid-column: span 2;
         }
         .transactions-title-row {
             display: flex;
@@ -1328,23 +1399,43 @@
         @media (max-width: 1024px) {
             .main-layout { grid-template-columns: 1fr !important; }
             .stats-box { position: static !important; }
-            .container { padding: 24px !important; }
+            .container { padding: 34px 24px 40px !important; }
+            .filter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
         @media (max-width: 768px) {
-            .container { padding: 12px !important; }
+            .container { padding: 24px 12px 32px !important; }
             .page-intro {
-                margin-bottom: 12px;
+                margin-bottom: 8px;
                 font-size: 1.12rem;
             }
             .page-actions {
-                gap: 10px;
-                margin-bottom: 24px;
+                gap: 8px;
+                margin-bottom: 18px;
+                padding-top: 10px;
+            }
+            .filter-panel {
+                padding: 12px;
             }
             .filter-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .filter-field-wide {
-                grid-column: span 2;
+            .filter-actions {
+                align-items: stretch;
+            }
+            .filter-more {
+                width: 100%;
+            }
+            .filter-more-trigger {
+                width: 100%;
+                justify-content: center;
+            }
+            .filter-more-panel {
+                position: static;
+                width: 100%;
+                margin-top: 8px;
+                box-shadow: none;
             }
             .add-btn {
                 width: 100%;
@@ -1382,10 +1473,19 @@
             body {
                 padding-top: 104px !important;
             }
+            .container {
+                padding: 20px 10px 28px !important;
+            }
             .filter-grid {
                 grid-template-columns: 1fr;
             }
             .filter-field-wide {
+                grid-column: auto;
+            }
+            .filter-more-grid {
+                grid-template-columns: 1fr;
+            }
+            .filter-more-grid .filter-field-wide {
                 grid-column: auto;
             }
             .header-logo {
@@ -1878,7 +1978,7 @@
             
             // Mezők feltöltése
             document.getElementById('kategoria_input').value = kategoria;
-            document.getElementById('kategoria_list').classList.remove('show');
+            hideCategoryLists();
             
             document.getElementById('penznem_input').value = penznem;
             document.getElementById('penznem_list').classList.remove('show');
@@ -2128,16 +2228,18 @@
         <form action="/fooldal" method="GET" class="filter-panel">
             <input type="hidden" name="honap" value="{{ $selectedMonth }}">
             <div class="filter-panel-head">
-                <div>
-                    <h2 class="filter-panel-title">Részletes keresés</h2>
-                    <p class="filter-panel-note">Szűrj szövegre, típusra, kategóriára, pénznemre, összegre vagy konkrét dátumtartományra.</p>
-                </div>
+                <h2 class="filter-panel-title">Szűrés</h2>
             </div>
 
             <div class="filter-grid">
                 <div class="filter-field filter-field-wide">
-                    <label class="filter-label" for="szuro_kereses">Szabad szavas keresés</label>
+                    <label class="filter-label" for="szuro_kereses">Keresés</label>
                     <input class="filter-input" id="szuro_kereses" type="text" name="szuro_kereses" value="{{ $filters['kereses'] }}" placeholder="Megjegyzés, kategória, pénznem, dátum...">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label" for="szuro_kategoria">Kategória</label>
+                    <input class="filter-input" id="szuro_kategoria" type="text" name="szuro_kategoria" value="{{ $filters['kategoria'] }}" placeholder="Például bevásárlás vagy fizetés">
                 </div>
 
                 <div class="filter-field">
@@ -2158,41 +2260,35 @@
                         @endforeach
                     </select>
                 </div>
-
-                <div class="filter-field filter-field-wide">
-                    <label class="filter-label" for="szuro_kategoria">Kategória</label>
-                    <input class="filter-input" id="szuro_kategoria" type="text" name="szuro_kategoria" value="{{ $filters['kategoria'] }}" placeholder="Például bevásárlás vagy fizetés">
-                </div>
-
-                <div class="filter-field">
-                    <label class="filter-label" for="szuro_osszeg_min">Minimum összeg</label>
-                    <input class="filter-input" id="szuro_osszeg_min" type="text" name="szuro_osszeg_min" value="{{ request('szuro_osszeg_min') }}" placeholder="0">
-                </div>
-
-                <div class="filter-field">
-                    <label class="filter-label" for="szuro_osszeg_max">Maximum összeg</label>
-                    <input class="filter-input" id="szuro_osszeg_max" type="text" name="szuro_osszeg_max" value="{{ request('szuro_osszeg_max') }}" placeholder="100000">
-                </div>
-
-                <div class="filter-field">
-                    <label class="filter-label" for="szuro_datum_tol">Dátumtól</label>
-                    <input class="filter-input" id="szuro_datum_tol" type="date" name="szuro_datum_tol" value="{{ $filters['datum_tol'] }}">
-                </div>
-
-                <div class="filter-field">
-                    <label class="filter-label" for="szuro_datum_ig">Dátumig</label>
-                    <input class="filter-input" id="szuro_datum_ig" type="date" name="szuro_datum_ig" value="{{ $filters['datum_ig'] }}">
-                </div>
             </div>
 
             <div class="filter-actions">
-                <div class="filter-summary">
-                    @if($isDetailedSearchActive)
-                        Szűrt találatok: <strong>{{ $tranzakciokAtvalasztva->count() }}</strong> tétel
-                    @else
-                        Jelenleg a kiválasztott hónap tranzakciói látszanak.
-                    @endif
-                </div>
+                <details class="filter-more" {{ ($hasDateRangeFilter || $filters['osszeg_min'] !== null || $filters['osszeg_max'] !== null) ? 'open' : '' }}>
+                    <summary class="filter-more-trigger">További keresések</summary>
+                    <div class="filter-more-panel">
+                        <div class="filter-more-grid">
+                            <div class="filter-field">
+                                <label class="filter-label" for="szuro_osszeg_min">Minimum összeg</label>
+                                <input class="filter-input" id="szuro_osszeg_min" type="text" name="szuro_osszeg_min" value="{{ request('szuro_osszeg_min') }}" placeholder="0">
+                            </div>
+
+                            <div class="filter-field">
+                                <label class="filter-label" for="szuro_osszeg_max">Maximum összeg</label>
+                                <input class="filter-input" id="szuro_osszeg_max" type="text" name="szuro_osszeg_max" value="{{ request('szuro_osszeg_max') }}" placeholder="100000">
+                            </div>
+
+                            <div class="filter-field">
+                                <label class="filter-label" for="szuro_datum_tol">Dátumtól</label>
+                                <input class="filter-input" id="szuro_datum_tol" type="date" name="szuro_datum_tol" value="{{ $filters['datum_tol'] }}">
+                            </div>
+
+                            <div class="filter-field">
+                                <label class="filter-label" for="szuro_datum_ig">Dátumig</label>
+                                <input class="filter-input" id="szuro_datum_ig" type="date" name="szuro_datum_ig" value="{{ $filters['datum_ig'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </details>
                 <div class="filter-button-row">
                     <a href="/fooldal?honap={{ $selectedMonth }}" class="add-btn secondary-btn">Szűrők törlése</a>
                     <button type="submit" class="add-btn primary-btn">Keresés</button>

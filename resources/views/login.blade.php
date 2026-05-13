@@ -144,6 +144,21 @@
         .register-link a:hover {
             color: #047857 !important;
         }
+        .demo-login {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            color: var(--ink);
+            font-size: 13px;
+            line-height: 1.65;
+            text-align: center;
+        }
+        .demo-login strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
         .resend-box form {
             display: flex;
             gap: 10px;
@@ -215,6 +230,12 @@
         
         <div class="register-link">
             Még nincs fiók? <a href="/felhasznalo/add">Regisztrálj most</a>
+        </div>
+
+        <div class="demo-login">
+            Demó belépés:<br>
+            Email: <strong>demo@spendwise.hu</strong><br>
+            Jelszó: <strong>123456789</strong>
         </div>
     </div>
 </body>
